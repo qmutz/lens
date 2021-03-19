@@ -168,11 +168,12 @@ export class AceEditor extends React.Component<Props, State> {
   }
 
   render() {
-    const { className, hidden } = this.props;
+    const { className, hidden, children } = this.props;
 
     return (
       <div className={cssNames("AceEditor", className, { hidden })}>
         <div className="editor" ref={e => this.elem = e}/>
+        {children}
       </div>
     );
   }
