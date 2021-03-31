@@ -24,7 +24,7 @@ import { render, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 
 import { DockTabs } from "../dock-tabs";
-import { dockStore, IDockTab, TabKind } from "../dock.store";
+import { dockStore, TabKind } from "../dock.store";
 
 const onChangeTab = jest.fn();
 
@@ -57,18 +57,12 @@ const getTabKinds = () => dockStore.tabs.map(tab => tab.kind);
 
 describe("<DockTabs />", () => {
   beforeEach(() => {
-    const terminalTab: IDockTab = { id: "terminal1", kind: TabKind.TERMINAL, title: "Terminal" };
-    const createResourceTab: IDockTab = { id: "create", kind: TabKind.CREATE_RESOURCE, title: "Create resource" };
-    const editResourceTab: IDockTab = { id: "edit", kind: TabKind.EDIT_RESOURCE, title: "Edit resource" };
-    const installChartTab: IDockTab = { id: "install", kind: TabKind.INSTALL_CHART, title: "Install chart" };
-    const logsTab: IDockTab = { id: "logs", kind: TabKind.POD_LOGS, title: "Logs" };
-
     dockStore.tabs.push(
-      terminalTab,
-      createResourceTab,
-      editResourceTab,
-      installChartTab,
-      logsTab
+      { id: "terminal1", kind: TabKind.TERMINAL, title: "Terminal" },
+      { id: "create", kind: TabKind.CREATE_RESOURCE, title: "Create resource" },
+      { id: "edit", kind: TabKind.EDIT_RESOURCE, title: "Edit resource" },
+      { id: "install", kind: TabKind.INSTALL_CHART, title: "Install chart" },
+      { id: "logs", kind: TabKind.POD_LOGS, title: "Logs" }
     );
   });
 

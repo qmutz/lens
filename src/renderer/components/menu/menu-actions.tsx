@@ -37,9 +37,9 @@ export interface MenuActionsProps extends Partial<MenuProps> {
   autoCloseOnSelect?: boolean;
   triggerIcon?: string | IconProps | React.ReactNode;
   removeConfirmationMessage?: React.ReactNode | (() => React.ReactNode);
-  updateAction?(): void;
-  removeAction?(): void;
-  onOpen?(): void;
+  updateAction?(): void | Promise<void>;
+  removeAction?(): void | Promise<void>;
+  onOpen?(): void | Promise<void>;
 }
 
 @observer
@@ -75,26 +75,26 @@ export class MenuActions extends React.Component<MenuActionsProps> {
   }
 
   renderTriggerIcon() {
-    if (this.props.toolbar) return;
-    const { triggerIcon = "more_vert" } = this.props;
-    let className: string;
+    if (this.props.toolbar) {
+      return null;
+    }
+
+    const { triggerIcon = "more_vert", onOpen } = this.props;
 
     if (isValidElement<HTMLElement>(triggerIcon)) {
-      className = cssNames(triggerIcon.props.className, { active: this.isOpen });
+      const className = cssNames(triggerIcon.props.className, { active: this.isOpen });
 
-      return React.cloneElement(triggerIcon, { id: this.id, className } as any);
+      return React.cloneElement(triggerIcon, { id: this.id, className });
     }
+
     const iconProps: Partial<IconProps> = {
       id: this.id,
       interactive: true,
       material: isString(triggerIcon) ? triggerIcon : undefined,
       active: this.isOpen,
+      onClick: onOpen,
       ...(typeof triggerIcon === "object" ? triggerIcon : {}),
     };
-
-    if (this.props.onOpen) {
-      iconProps.onClick = this.props.onOpen;
-    }
 
     if (iconProps.tooltip && this.isOpen) {
       delete iconProps.tooltip; // don't show tooltip for icon when menu is open

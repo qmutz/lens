@@ -19,10 +19,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import MD5 from "crypto-js/md5";
 import { action, computed, IReactionOptions, observable, reaction } from "mobx";
 import { autobind, createStorage } from "../../utils";
 import throttle from "lodash/throttle";
+import * as uuid from "uuid";
 
 export type TabId = string;
 
@@ -42,9 +42,13 @@ export interface IDockTab {
   pinned?: boolean; // not closable
 }
 
+export interface DockTab extends IDockTab {
+  id: TabId;
+}
+
 export interface DockStorageState {
   height: number;
-  tabs: IDockTab[];
+  tabs: DockTab[];
   selectedTabId?: TabId;
   isOpen?: boolean;
 }
@@ -79,11 +83,11 @@ export class DockStore implements DockStorageState {
     });
   }
 
-  get tabs(): IDockTab[] {
+  get tabs(): DockTab[] {
     return this.storage.get().tabs;
   }
 
-  set tabs(tabs: IDockTab[]) {
+  set tabs(tabs: DockTab[]) {
     this.storage.merge({ tabs });
   }
 
@@ -186,15 +190,15 @@ export class DockStore implements DockStorageState {
   }
 
   @action
-  createTab(anonTab: IDockTab, addNumber = true): IDockTab {
-    const tabId = MD5(Math.random().toString() + Date.now()).toString();
-    const tab: IDockTab = { id: tabId, ...anonTab };
+  createTab({ id = uuid.v4(), ...rawTab }: IDockTab, addNumber = false): IDockTab {
+    const tab = { id, ...rawTab };
 
     if (addNumber) {
       const tabNumber = this.getNewTabNumber(tab.kind);
 
       if (tabNumber > 1) tab.title += ` (${tabNumber})`;
     }
+
     this.tabs.push(tab);
     this.selectTab(tab.id);
     this.open();

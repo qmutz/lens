@@ -29,6 +29,7 @@ import { apiKube } from "./index";
 import { JsonApiParams } from "./json-api";
 import { resourceApplierApi } from "./endpoints/resource-applier.api";
 import { hasOptionalProperty, hasTypedProperty, isObject, isString, bindPredicate, isTypedArray, isRecord } from "../../common/utils/type-narrowing";
+import _ from "lodash";
 
 export type IKubeObjectConstructor<T extends KubeObject = any> = (new (data: KubeJsonApiData | any) => T) & {
   kind?: string;
@@ -174,6 +175,17 @@ export class KubeObject implements ItemObject {
     return Object.entries(labels).map(([name, value]) => `${name}=${value}`);
   }
 
+  protected static readonly nonEditableFields = [
+    "apiVersion",
+    "kind",
+    "metadata.name",
+    "metadata.selfLink",
+    "metadata.resourceVersion",
+    "metadata.uid",
+    "managedFields",
+    "status",
+  ];
+
   constructor(data: KubeJsonApiData) {
     Object.assign(this, data);
   }
@@ -182,6 +194,7 @@ export class KubeObject implements ItemObject {
   kind: string;
   metadata: IKubeObjectMetadata;
   status?: any; // todo: type-safety support
+  managedFields?: any;
 
   get selfLink() {
     return this.metadata.selfLink;
@@ -266,6 +279,12 @@ export class KubeObject implements ItemObject {
 
   // use unified resource-applier api for updating all k8s objects
   async update<T extends KubeObject>(data: Partial<T>) {
+    for (const field of KubeObject.nonEditableFields) {
+      if (!_.isEqual(_.get(this, field), _.get(data, field))) {
+        throw new Error(`Failed to update Kube Object: ${field} has been modified`);
+      }
+    }
+
     return resourceApplierApi.update<T>({
       ...this.toPlainObject(),
       ...data,
