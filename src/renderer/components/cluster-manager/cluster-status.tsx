@@ -19,21 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { KubeAuthProxyLog } from "../../../main/kube-auth-proxy";
-
 import "./cluster-status.scss";
-import React from "react";
-import { observer } from "mobx-react";
+
 import { ipcRenderer } from "electron";
 import { computed, observable } from "mobx";
-import { requestMain, subscribeToBroadcast } from "../../../common/ipc";
-import { Icon } from "../icon";
-import { Button } from "../button";
-import { cssNames, IClassName } from "../../utils";
-import { Cluster } from "../../../main/cluster";
-import { ClusterId, ClusterStore } from "../../../common/cluster-store";
-import { CubeSpinner } from "../spinner";
+import { observer } from "mobx-react";
+import React from "react";
+
 import { clusterActivateHandler } from "../../../common/cluster-ipc";
+import { ClusterId, ClusterStore } from "../../../common/cluster-store";
+import { requestMain, subscribeToBroadcast } from "../../../common/ipc";
+import { Cluster } from "../../../main/cluster";
+import { cssNames, IClassName } from "../../utils";
+import { Button } from "../button";
+import { Icon } from "../icon";
+import { CubeSpinner } from "../spinner";
+
+import type { KubeAuthProxyLog } from "../../../main/kube-auth-proxy";
+import { navigate } from "../../navigation";
+import { entitySettingsURL } from "../+entity-settings";
 
 interface Props {
   className?: IClassName;
@@ -77,6 +81,15 @@ export class ClusterStatus extends React.Component<Props> {
     this.isReconnecting = false;
   };
 
+  manageProxySettings = () => {
+    navigate(entitySettingsURL({
+      params: {
+        entityId: this.props.clusterId,
+      },
+      fragment: "http-proxy",
+    }));
+  };
+
   renderContent() {
     const { authOutput, cluster, hasErrors } = this;
     const failureReason = cluster.failureReason;
@@ -115,6 +128,12 @@ export class ClusterStatus extends React.Component<Props> {
           className="box center"
           onClick={this.reconnect}
           waiting={this.isReconnecting}
+        />
+        <Button
+          primary
+          label="Manage Proxy Settings"
+          className="box center"
+          onClick={this.manageProxySettings}
         />
       </>
     );
