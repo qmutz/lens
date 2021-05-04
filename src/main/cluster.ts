@@ -18,21 +18,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import { ipcMain } from "electron";
-import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, UpdateClusterModel } from "../common/cluster-store";
-import { action, comparer, computed, observable, reaction, toJS, when } from "mobx";
-import { broadcastMessage, ClusterListNamespaceForbiddenChannel } from "../common/ipc";
-import { ContextHandler } from "./context-handler";
 import { AuthorizationV1Api, CoreV1Api, HttpError, KubeConfig, V1ResourceAttributes } from "@kubernetes/client-node";
-import { Kubectl } from "./kubectl";
-import { KubeconfigManager } from "./kubeconfig-manager";
-import { loadConfig, validateKubeConfig } from "../common/kube-helpers";
-import { apiResourceRecord, apiResources, KubeApiResource, KubeResource } from "../common/rbac";
-import logger from "./logger";
-import { VersionDetector } from "./cluster-detectors/version-detector";
-import { detectorRegistry } from "./cluster-detectors/detector-registry";
+import { createHash } from "crypto";
+import { ipcMain } from "electron";
+import { action, comparer, computed, observable, reaction, toJS, when } from "mobx";
 import plimit from "p-limit";
+
+import { broadcastMessage, ClusterListNamespaceForbiddenChannel } from "../common/ipc";
+import { loadConfig, validateKubeConfig } from "../common/kube-helpers";
+import { apiResources, KubeApiResource } from "../common/rbac";
+import { detectorRegistry } from "./cluster-detectors/detector-registry";
+import { VersionDetector } from "./cluster-detectors/version-detector";
+import { ContextHandler } from "./context-handler";
+import { KubeconfigManager } from "./kubeconfig-manager";
+import { Kubectl } from "./kubectl";
+import logger from "./logger";
+
+import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, UpdateClusterModel } from "../common/cluster-store";
 
 export enum ClusterStatus {
   AccessGranted = 2,
@@ -72,6 +74,10 @@ export interface ClusterState {
  * @beta
  */
 export class Cluster implements ClusterModel, ClusterState {
+  public static getDeteministicId(model: UpdateClusterModel): ClusterId {
+    return createHash("md5").update(`${model.kubeConfigPath}:${model.contextName}`).digest("hex");
+  }
+
   /** Unique id for a cluster */
   public readonly id: ClusterId;
   /**

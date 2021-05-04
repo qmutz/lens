@@ -18,14 +18,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import { catalogCategoryRegistry } from "../catalog/catalog-category-registry";
-import { CatalogEntity, CatalogEntityActionContext, CatalogEntityAddMenuContext, CatalogEntityContextMenuContext, CatalogEntityMetadata, CatalogEntityStatus } from "../catalog";
-import { clusterDisconnectHandler } from "../cluster-ipc";
+import { CatalogEntity, CatalogEntityMetadata, CatalogEntityStatus } from "../catalog";
+import { ActionContext, ContextMenu, MenuContext } from "../catalog/catalog-entity";
+import { disconnect } from "../cluster-ipc";
 import { ClusterStore } from "../cluster-store";
 import { requestMain } from "../ipc";
 import { productName } from "../vars";
-import { CatalogCategory, CatalogCategorySpec } from "../catalog";
+
 
 export type KubernetesClusterSpec = {
   kubeconfigPath: string;
@@ -33,37 +32,40 @@ export type KubernetesClusterSpec = {
 };
 
 export interface KubernetesClusterStatus extends CatalogEntityStatus {
-  phase: "connected" | "disconnected";
+  phase?: "connected" | "disconnected";
 }
 
 export class KubernetesCluster extends CatalogEntity<CatalogEntityMetadata, KubernetesClusterStatus, KubernetesClusterSpec> {
   public readonly apiVersion = "entity.k8slens.dev/v1alpha1";
   public readonly kind = "KubernetesCluster";
 
-  async onRun(context: CatalogEntityActionContext) {
+  onRun = (context: ActionContext) => {
     context.navigate(`/cluster/${this.metadata.uid}`);
-  }
+  };
 
-  onDetailsOpen(): void {
-    //
-  }
+  onContextMenuOpen = (context: MenuContext) => {
+    const res: ContextMenu[] = [];
 
-  onSettingsOpen(): void {
-    //
-  }
+    if (this.status.phase == "connected") {
+      res.push({
+        icon: "link_off",
+        title: "Disconnect",
+        onClick: async () => {
+          ClusterStore.getInstance().deactivate(this.metadata.uid);
+          requestMain(disconnect, this.metadata.uid);
+        }
+      });
+    }
 
-  async onContextMenuOpen(context: CatalogEntityContextMenuContext) {
-    context.menuItems = [
-      {
-        icon: "settings",
-        title: "Settings",
-        onlyVisibleForSource: "local",
-        onClick: async () => context.navigate(`/entity/${this.metadata.uid}/settings`)
-      },
-    ];
+    res.push({
+      icon: "settings",
+      title: "Settings",
+      onlyVisibleForSource: "local",
+      onClick: async () => context.navigate(`/entity/${this.metadata.uid}/settings`)
+    });
 
     if (this.metadata.labels["file"]?.startsWith(ClusterStore.storedKubeConfigFolder)) {
-      context.menuItems.push({
+      res.push({
         icon: "delete",
         title: "Delete",
         onlyVisibleForSource: "local",
@@ -74,56 +76,6 @@ export class KubernetesCluster extends CatalogEntity<CatalogEntityMetadata, Kube
       });
     }
 
-    if (this.status.phase == "connected") {
-      context.menuItems.unshift({
-        icon: "link_off",
-        title: "Disconnect",
-        onClick: async () => {
-          ClusterStore.getInstance().deactivate(this.metadata.uid);
-          requestMain(clusterDisconnectHandler, this.metadata.uid);
-        }
-      });
-    }
-
-    const category = catalogCategoryRegistry.getCategoryForEntity<KubernetesClusterCategory>(this);
-
-    if (category) category.emit("contextMenuOpen", this, context);
-  }
-}
-
-export class KubernetesClusterCategory extends CatalogCategory {
-  public readonly apiVersion = "catalog.k8slens.dev/v1alpha1";
-  public readonly kind = "CatalogCategory";
-  public metadata = {
-    name: "Kubernetes Clusters",
-    icon: require(`!!raw-loader!./icons/kubernetes.svg`).default // eslint-disable-line
+    return res;
   };
-  public spec: CatalogCategorySpec = {
-    group: "entity.k8slens.dev",
-    versions: [
-      {
-        name: "v1alpha1",
-        entityClass: KubernetesCluster
-      }
-    ],
-    names: {
-      kind: "KubernetesCluster"
-    }
-  };
-
-  constructor() {
-    super();
-
-    this.on("onCatalogAddMenu", (ctx: CatalogEntityAddMenuContext) => {
-      ctx.menuItems.push({
-        icon: "text_snippet",
-        title: "Add from kubeconfig",
-        onClick: () => {
-          ctx.navigate("/add-cluster");
-        }
-      });
-    });
-  }
 }
-
-catalogCategoryRegistry.add(new KubernetesClusterCategory());

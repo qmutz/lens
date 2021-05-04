@@ -132,7 +132,6 @@ export class ClusterStore extends BaseStore<ClusterStoreModel> {
   }
 
   @observable activeCluster: ClusterId;
-  @observable removedClusters = observable.map<ClusterId, Cluster>();
   @observable clusters = observable.map<ClusterId, Cluster>();
 
   private static stateRequestChannel = "cluster:states";
@@ -311,7 +310,6 @@ export class ClusterStore extends BaseStore<ClusterStoreModel> {
   protected fromStore({ activeCluster, clusters = [] }: ClusterStoreModel = {}) {
     const currentClusters = this.clusters.toJS();
     const newClusters = new Map<ClusterId, Cluster>();
-    const removedClusters = new Map<ClusterId, Cluster>();
 
     // update new clusters
     for (const clusterModel of clusters) {
@@ -329,16 +327,8 @@ export class ClusterStore extends BaseStore<ClusterStoreModel> {
       }
     }
 
-    // update removed clusters
-    currentClusters.forEach(cluster => {
-      if (!newClusters.has(cluster.id)) {
-        removedClusters.set(cluster.id, cluster);
-      }
-    });
-
     this.setActive(activeCluster);
     this.clusters.replace(newClusters);
-    this.removedClusters.replace(removedClusters);
   }
 
   toJSON(): ClusterStoreModel {

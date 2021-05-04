@@ -22,11 +22,11 @@
 // Inter-process communications (main <-> renderer)
 // https://www.electronjs.org/docs/api/ipc-main
 // https://www.electronjs.org/docs/api/ipc-renderer
+import Electron, { ipcMain, ipcRenderer, remote } from "electron";
 
-import { ipcMain, ipcRenderer, webContents, remote } from "electron";
-import { toJS } from "mobx";
+import { ClusterFrameInfo, ClusterManager } from "../../main/cluster-manager";
 import logger from "../../main/logger";
-import { ClusterFrameInfo, clusterFrameMap } from "../cluster-frames";
+import { Disposer, disposer } from "../utils";
 
 const subFramesChannel = "ipc:get-sub-frames";
 
@@ -39,11 +39,11 @@ export async function requestMain(channel: string, ...args: any[]) {
 }
 
 function getSubFrames(): ClusterFrameInfo[] {
-  return toJS(Array.from(clusterFrameMap.values()), { recurseEverything: true });
+  return ClusterManager.getInstance().getAllFrameInfo();
 }
 
 export async function broadcastMessage(channel: string, ...args: any[]) {
-  const views = (webContents || remote?.webContents)?.getAllWebContents();
+  const views = (Electron.webContents || remote?.webContents)?.getAllWebContents();
 
   if (!views) return;
 
@@ -73,22 +73,12 @@ export async function broadcastMessage(channel: string, ...args: any[]) {
   }
 }
 
-export function subscribeToBroadcast(channel: string, listener: (...args: any[]) => any) {
-  if (ipcRenderer) {
-    ipcRenderer.on(channel, listener);
-  } else if (ipcMain) {
-    ipcMain.on(channel, listener);
-  }
+export function subscribeToBroadcast(channel: string, listener: (...args: any[]) => any): Disposer {
+  const ipc: NodeJS.EventEmitter = ipcRenderer ?? ipcMain;
 
-  return listener;
-}
+  ipc.on(channel, listener);
 
-export function unsubscribeFromBroadcast(channel: string, listener: (...args: any[]) => any) {
-  if (ipcRenderer) {
-    ipcRenderer.off(channel, listener);
-  } else if (ipcMain) {
-    ipcMain.off(channel, listener);
-  }
+  return disposer(() => ipc.off(channel, listener));
 }
 
 export function unsubscribeAllFromBroadcast(channel: string) {
@@ -100,7 +90,5 @@ export function unsubscribeAllFromBroadcast(channel: string) {
 }
 
 export function bindBroadcastHandlers() {
-  handleRequest(subFramesChannel, () => {
-    return getSubFrames();
-  });
+  handleRequest(subFramesChannel, getSubFrames);
 }

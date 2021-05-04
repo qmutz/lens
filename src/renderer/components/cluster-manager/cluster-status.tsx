@@ -18,22 +18,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import type { KubeAuthProxyLog } from "../../../main/kube-auth-proxy";
-
 import "./cluster-status.scss";
-import React from "react";
-import { observer } from "mobx-react";
+
 import { ipcRenderer } from "electron";
 import { computed, observable } from "mobx";
-import { requestMain, subscribeToBroadcast } from "../../../common/ipc";
-import { Icon } from "../icon";
-import { Button } from "../button";
-import { cssNames, IClassName } from "../../utils";
-import { Cluster } from "../../../main/cluster";
+import { observer } from "mobx-react";
+import React from "react";
+
+import { activate } from "../../../common/cluster-ipc";
 import { ClusterId, ClusterStore } from "../../../common/cluster-store";
+import { requestMain, subscribeToBroadcast } from "../../../common/ipc";
+import { Cluster } from "../../../main/cluster";
+import { cssNames, IClassName } from "../../utils";
+import { Button } from "../button";
+import { Icon } from "../icon";
 import { CubeSpinner } from "../spinner";
-import { clusterActivateHandler } from "../../../common/cluster-ipc";
+
+import type { KubeAuthProxyLog } from "../../../main/kube-auth-proxy";
 
 interface Props {
   className?: IClassName;
@@ -67,7 +68,7 @@ export class ClusterStatus extends React.Component<Props> {
   }
 
   activateCluster = async (force = false) => {
-    await requestMain(clusterActivateHandler, this.props.clusterId, force);
+    await requestMain(activate, this.props.clusterId, force);
   };
 
   reconnect = async () => {

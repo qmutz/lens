@@ -26,32 +26,21 @@ import { Icon } from "../icon";
 import { disposeOnUnmount, observer } from "mobx-react";
 import { observable, reaction } from "mobx";
 import { autobind } from "../../../common/utils";
-import { CatalogCategory, CatalogEntityAddMenuContext, CatalogEntityContextMenu } from "../../api/catalog-entity";
-import { EventEmitter } from "events";
-import { navigate } from "../../navigation";
+import { CatalogCategoryRegistry, CatalogCategorySpec, ContextMenu } from "../../../common/catalog";
 
 export type CatalogAddButtonProps = {
-  category: CatalogCategory
+  category: CatalogCategorySpec,
 };
 
 @observer
 export class CatalogAddButton extends React.Component<CatalogAddButtonProps> {
   @observable protected isOpen = false;
-  protected menuItems = observable.array<CatalogEntityContextMenu>([]);
+  @observable protected menuItems: ContextMenu[] = [];
 
   componentDidMount() {
     disposeOnUnmount(this, [
       reaction(() => this.props.category, (category) => {
-        this.menuItems.clear();
-
-        if (category && category instanceof EventEmitter) {
-          const context: CatalogEntityAddMenuContext = {
-            navigate: (url: string) => navigate(url),
-            menuItems: this.menuItems
-          };
-
-          category.emit("onCatalogAddMenu", context);
-        }
+        this.menuItems = CatalogCategoryRegistry.getInstance().runGlobalHandlersFor(category, "onAddMenuOpen");
       }, { fireImmediately: true })
     ]);
   }

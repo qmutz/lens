@@ -18,59 +18,73 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { Catalog, Interface, LensRendererExtension } from "@k8slens/extensions";
 
-import { LensRendererExtension, Interface, Component, Catalog} from "@k8slens/extensions";
 import { MetricsFeature } from "./src/metrics-feature";
+
 
 export default class ClusterMetricsFeatureExtension extends LensRendererExtension {
   onActivate() {
-    const category = Catalog.catalogCategories.getForGroupKind<Catalog.KubernetesClusterCategory>("entity.k8slens.dev", "KubernetesCluster");
-
-    if (!category) {
-      return;
-    }
-
-    category.on("contextMenuOpen", this.clusterContextMenuOpen.bind(this));
+    this.disposers.push(
+      Catalog.CatalogCategoryRegistry.registerHandler(
+        "entity.k8slens.dev/v1alpha1",
+        "KubernetesCluster",
+        "onContextMenuOpen",
+        this.clusterContextMenuOpen,
+      ),
+    );
   }
 
-  async clusterContextMenuOpen(cluster: Catalog.KubernetesCluster, ctx: Interface.CatalogEntityContextMenuContext) {
+  clusterContextMenuOpen = (cluster: Catalog.KubernetesCluster): Interface.ContextMenu[] => {
     if (!cluster.status.active) {
-      return;
+      return [];
     }
 
     const metricsFeature = new MetricsFeature();
 
-    await metricsFeature.updateStatus(cluster);
-
-    if (metricsFeature.status.installed) {
-      if (metricsFeature.status.canUpgrade) {
-        ctx.menuItems.unshift({
-          icon: "refresh",
-          title: "Upgrade Lens Metrics stack",
-          onClick: async () => {
-            metricsFeature.upgrade(cluster);
-          }
-        });
-      }
-      ctx.menuItems.unshift({
-        icon: "toggle_off",
-        title: "Uninstall Lens Metrics stack",
+    return [
+      {
+        icon: "refresh",
+        title: "Upgrade Lens Metrics stack",
         onClick: async () => {
-          await metricsFeature.uninstall(cluster);
-
-          Component.Notifications.info(`Lens Metrics has been removed from ${cluster.metadata.name}`, { timeout: 10_000 });
+          metricsFeature.upgrade(cluster);
         }
-      });
-    } else {
-      ctx.menuItems.unshift({
-        icon: "toggle_on",
-        title: "Install Lens Metrics stack",
-        onClick: async () => {
-          metricsFeature.install(cluster);
+      },
+    ];
 
-          Component.Notifications.info(`Lens Metrics is now installed to ${cluster.metadata.name}`, { timeout: 10_000 });
-        }
-      });
-    }
-  }
+    // const metricsFeature = new MetricsFeature();
+
+    // await metricsFeature.updateStatus(cluster);
+
+    // if (metricsFeature.status.installed) {
+    //   if (metricsFeature.status.canUpgrade) {
+    //     ctx.menuItems.unshift({
+    //       icon: "refresh",
+    //       title: "Upgrade Lens Metrics stack",
+    //       onClick: async () => {
+    //         metricsFeature.upgrade(cluster);
+    //       }
+    //     });
+    //   }
+    //   ctx.menuItems.unshift({
+    //     icon: "toggle_off",
+    //     title: "Uninstall Lens Metrics stack",
+    //     onClick: async () => {
+    //       await metricsFeature.uninstall(cluster);
+
+    //       Component.Notifications.info(`Lens Metrics has been removed from ${cluster.metadata.name}`, { timeout: 10_000 });
+    //     }
+    //   });
+    // } else {
+    //   ctx.menuItems.unshift({
+    //     icon: "toggle_on",
+    //     title: "Install Lens Metrics stack",
+    //     onClick: async () => {
+    //       metricsFeature.install(cluster);
+
+    //       Component.Notifications.info(`Lens Metrics is now installed to ${cluster.metadata.name}`, { timeout: 10_000 });
+    //     }
+    //   });
+    // }
+  };
 }

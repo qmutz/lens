@@ -18,21 +18,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import type { ClusterId } from "../common/cluster-store";
-import { observable } from "mobx";
 import { app, BrowserWindow, dialog, shell, webContents } from "electron";
 import windowStateKeeper from "electron-window-state";
+import { observable } from "mobx";
+
 import { appEventBus } from "../common/event-bus";
 import { subscribeToBroadcast } from "../common/ipc";
-import { initMenu } from "./menu";
-import { initTray } from "./tray";
 import { Singleton } from "../common/utils";
-import { ClusterFrameInfo, clusterFrameMap } from "../common/cluster-frames";
-import { IpcRendererNavigationEvents } from "../renderer/navigation/events";
-import logger from "./logger";
 import { productName } from "../common/vars";
+import { IpcRendererNavigationEvents } from "../renderer/navigation/events";
+import { ClusterManager } from "./cluster-manager";
+import logger from "./logger";
+import { initMenu } from "./menu";
 import { LensProxy } from "./proxy/lens-proxy";
+import { initTray } from "./tray";
+
+import type { ClusterId } from "../common/cluster-store";
 
 export class WindowManager extends Singleton {
   protected mainWindow: BrowserWindow;
@@ -152,34 +153,33 @@ export class WindowManager extends Singleton {
     return this.mainWindow;
   }
 
-  sendToView({ channel, frameInfo, data = [] }: { channel: string, frameInfo?: ClusterFrameInfo, data?: any[] }) {
-    if (frameInfo) {
-      this.mainWindow.webContents.sendToFrame([frameInfo.processId, frameInfo.frameId], channel, ...data);
-    } else {
-      this.mainWindow.webContents.send(channel, ...data);
-    }
-  }
-
   async navigate(url: string, frameId?: number) {
     await this.ensureMainWindow();
 
-    const frameInfo = Array.from(clusterFrameMap.values()).find((frameInfo) => frameInfo.frameId === frameId);
-    const channel = frameInfo
-      ? IpcRendererNavigationEvents.NAVIGATE_IN_CLUSTER
-      : IpcRendererNavigationEvents.NAVIGATE_IN_APP;
+    if (frameId === undefined) {
+      const processId = ClusterManager.getInstance().getFrameProcessIdById(frameId);
 
-    this.sendToView({
-      channel,
-      frameInfo,
-      data: [url],
-    });
+      this.mainWindow.webContents.sendToFrame(
+        [processId, frameId],
+        IpcRendererNavigationEvents.NAVIGATE_IN_APP,
+        url
+      );
+    } else {
+      this.mainWindow.webContents.send(
+        IpcRendererNavigationEvents.NAVIGATE_IN_CLUSTER,
+        url
+      );
+    }
   }
 
   reload() {
-    const frameInfo = clusterFrameMap.get(this.activeClusterId);
+    const frameInfo = ClusterManager.getInstance().getFrameInfoByClusterId(this.activeClusterId);
 
     if (frameInfo) {
-      this.sendToView({ channel: IpcRendererNavigationEvents.RELOAD_PAGE, frameInfo });
+      this.mainWindow.webContents.sendToFrame(
+        [frameInfo.processId, frameInfo.frameId],
+        IpcRendererNavigationEvents.RELOAD_PAGE,
+      );
     } else {
       webContents.getFocusedWebContents()?.reload();
     }

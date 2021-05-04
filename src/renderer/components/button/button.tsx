@@ -20,7 +20,9 @@
  */
 
 import "./button.scss";
+
 import React, { ButtonHTMLAttributes } from "react";
+
 import { cssNames } from "../../utils";
 import { TooltipDecoratorProps, withTooltip } from "../tooltip";
 
@@ -42,9 +44,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<any>, TooltipDecorator
 
 @withTooltip
 export class Button extends React.PureComponent<ButtonProps, {}> {
-  private link: HTMLAnchorElement;
-  private button: HTMLButtonElement;
-
   render() {
     const {
       waiting, label, primary, accent, plain, hidden, active, big,
@@ -60,7 +59,7 @@ export class Button extends React.PureComponent<ButtonProps, {}> {
     // render as link
     if (this.props.href) {
       return (
-        <a {...btnProps} ref={e => this.link = e}>
+        <a {...btnProps}>
           {label}
           {children}
         </a>
@@ -69,7 +68,7 @@ export class Button extends React.PureComponent<ButtonProps, {}> {
 
     // render as button
     return (
-      <button type="button" {...btnProps} ref={e => this.button = e}>
+      <button type="button" {...btnProps}>
         {label}
         {children}
       </button>

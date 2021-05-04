@@ -28,6 +28,7 @@ import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 import ProgressBarPlugin from "progress-bar-webpack-plugin";
 import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
 import * as vars from "./src/common/vars";
+import CircularDependencyPlugin from "circular-dependency-plugin";
 
 export default [
   webpackLensRenderer
@@ -177,6 +178,9 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
       isDevelopment && new webpack.HotModuleReplacementPlugin(),
       isDevelopment && new ReactRefreshWebpackPlugin(),
 
+      new CircularDependencyPlugin({
+        exclude: /node_modules/,
+      }),
     ].filter(Boolean),
   };
 }

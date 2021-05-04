@@ -18,18 +18,18 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import { app } from "electron";
 import fs from "fs";
-import path from "path";
 import hb from "handlebars";
 import { observable } from "mobx";
+import path from "path";
+
+import { kubectlApplyAll } from "../common/cluster-ipc";
+import { ClusterStore } from "../common/cluster-store";
+import { requestMain } from "../common/ipc";
+import logger from "../main/logger";
 import { ResourceApplier } from "../main/resource-applier";
 import { KubernetesCluster } from "./core-api/catalog";
-import logger from "../main/logger";
-import { app } from "electron";
-import { requestMain } from "../common/ipc";
-import { clusterKubectlApplyAllHandler } from "../common/cluster-ipc";
-import { ClusterStore } from "../common/cluster-store";
 
 export interface ClusterFeatureStatus {
   /** feature's current version, as set by the implementation */
@@ -120,9 +120,9 @@ export abstract class ClusterFeature {
     }
 
     if (app) {
-      await new ResourceApplier(clusterModel).kubectlApplyAll(resources);
+      await ResourceApplier.new(clusterModel).kubectlApplyAll(resources);
     } else {
-      await requestMain(clusterKubectlApplyAllHandler, cluster.metadata.uid, resources);
+      await requestMain(kubectlApplyAll, cluster.metadata.uid, resources);
     }
   }
 

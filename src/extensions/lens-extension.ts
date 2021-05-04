@@ -24,6 +24,7 @@ import { action, observable, reaction } from "mobx";
 import { FilesystemProvisionerStore } from "../main/extension-filesystem";
 import logger from "../main/logger";
 import { ProtocolHandlerRegistration } from "./registries/protocol-handler-registry";
+import { disposer } from "../common/utils";
 
 export type LensExtensionId = string; // path to manifest (package.json)
 export type LensExtensionConstructor = new (...args: ConstructorParameters<typeof LensExtension>) => LensExtension;
@@ -44,6 +45,8 @@ export class LensExtension {
   readonly isBundled: boolean;
 
   protocolHandlers: ProtocolHandlerRegistration[] = [];
+
+  disposers = disposer();
 
   @observable private isEnabled = false;
 
@@ -130,7 +133,7 @@ export class LensExtension {
   }
 
   protected onDeactivate() {
-    // mock
+    this.disposers();
   }
 }
 

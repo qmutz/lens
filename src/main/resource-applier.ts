@@ -18,20 +18,25 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import type { Cluster } from "./cluster";
 import { KubernetesObject } from "@kubernetes/client-node";
 import { exec } from "child_process";
 import fs from "fs";
 import * as yaml from "js-yaml";
 import path from "path";
 import * as tempy from "tempy";
-import logger from "./logger";
+
 import { appEventBus } from "../common/event-bus";
 import { cloneJsonObject } from "../common/utils";
+import logger from "./logger";
+
+import type { Cluster } from "./cluster";
 
 export class ResourceApplier {
-  constructor(protected cluster: Cluster) {
+  static new(cluster: Cluster) {
+    return new ResourceApplier(cluster);
+  }
+
+  protected constructor(protected cluster: Cluster) {
   }
 
   async apply(resource: KubernetesObject | any): Promise<string> {

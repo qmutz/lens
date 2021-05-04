@@ -29,7 +29,7 @@ import { PageLayout } from "../layout/page-layout";
 import { navigation } from "../../navigation";
 import { Tabs, Tab } from "../tabs";
 import { CatalogEntity } from "../../api/catalog-entity";
-import { catalogEntityRegistry } from "../../api/catalog-entity-registry";
+import { CatalogEntityRegistry } from "../../api/catalog-entity-registry";
 import { entitySettingRegistry } from "../../../extensions/registries";
 import { EntitySettingsRouteParams } from "./entity-settings.route";
 
@@ -45,7 +45,7 @@ export class EntitySettings extends React.Component<Props> {
   }
 
   get entity(): CatalogEntity {
-    return catalogEntityRegistry.getById(this.entityId);
+    return CatalogEntityRegistry.getInstance().getById(this.entityId);
   }
 
   get menuItems() {

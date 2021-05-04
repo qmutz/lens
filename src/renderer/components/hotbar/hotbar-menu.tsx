@@ -26,7 +26,7 @@ import React, { HTMLAttributes, ReactNode, useState } from "react";
 import { observer } from "mobx-react";
 import { HotbarIcon } from "./hotbar-icon";
 import { cssNames, IClassName } from "../../utils";
-import { catalogEntityRegistry } from "../../api/catalog-entity-registry";
+import { CatalogEntityRegistry } from "../../api/catalog-entity-registry";
 import { defaultHotbarCells, HotbarItem, HotbarStore } from "../../../common/hotbar-store";
 import { CatalogEntity, catalogEntityRunContext } from "../../api/catalog-entity";
 import { DragDropContext, Draggable, Droppable, DropResult } from "react-beautiful-dnd";
@@ -43,7 +43,7 @@ export class HotbarMenu extends React.Component<Props> {
   }
 
   isActive(item: CatalogEntity) {
-    return catalogEntityRegistry.activeEntity?.metadata?.uid == item.getId();
+    return CatalogEntityRegistry.getInstance().activeEntity?.metadata?.uid == item.getId();
   }
 
   getEntity(item: HotbarItem) {
@@ -53,7 +53,7 @@ export class HotbarMenu extends React.Component<Props> {
       return null;
     }
 
-    return item ? catalogEntityRegistry.items.find((entity) => entity.metadata.uid === item.entity.uid) : null;
+    return item ? CatalogEntityRegistry.getInstance().items.find((entity) => entity.metadata.uid === item.entity.uid) : null;
   }
 
   onDragEnd(result: DropResult) {

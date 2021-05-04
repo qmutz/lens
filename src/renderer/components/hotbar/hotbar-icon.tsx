@@ -21,21 +21,21 @@
 
 import "./hotbar-icon.scss";
 
-import React, { DOMAttributes } from "react";
-import { observer } from "mobx-react";
-import { cssNames, IClassName, iter } from "../../utils";
-import { Tooltip } from "../tooltip";
 import { Avatar } from "@material-ui/core";
-import { CatalogEntity, CatalogEntityContextMenu, CatalogEntityContextMenuContext } from "../../../common/catalog";
-import { Menu, MenuItem } from "../menu";
-import { Icon } from "../icon";
-import { computed, observable } from "mobx";
-import { navigate } from "../../navigation";
-import { HotbarStore } from "../../../common/hotbar-store";
-import { ConfirmDialog } from "../confirm-dialog";
-import randomColor from "randomcolor";
-import { catalogCategoryRegistry } from "../../api/catalog-category-registry";
 import GraphemeSplitter from "grapheme-splitter";
+import { computed, observable } from "mobx";
+import { observer } from "mobx-react";
+import randomColor from "randomcolor";
+import React, { DOMAttributes } from "react";
+
+import { CatalogEntity, ContextMenu } from "../../../common/catalog";
+import { HotbarStore } from "../../../common/hotbar-store";
+import { CatalogCategoryRegistry } from "../../api/catalog-category-registry";
+import { cssNames, IClassName, iter } from "../../utils";
+import { ConfirmDialog } from "../confirm-dialog";
+import { Icon } from "../icon";
+import { Menu, MenuItem } from "../menu";
+import { Tooltip } from "../tooltip";
 
 interface Props extends DOMAttributes<HTMLElement> {
   entity: CatalogEntity;
@@ -63,15 +63,8 @@ function getNameParts(name: string): string[] {
 
 @observer
 export class HotbarIcon extends React.Component<Props> {
-  @observable.deep private contextMenu: CatalogEntityContextMenuContext;
+  @observable menuItems?: ContextMenu[];
   @observable menuOpen = false;
-
-  componentDidMount() {
-    this.contextMenu = {
-      menuItems: [],
-      navigate: (url: string) => navigate(url)
-    };
-  }
 
   @computed get iconString() {
     const [rawFirst, rawSecond, rawThird] = getNameParts(this.props.entity.metadata.name);
@@ -88,18 +81,17 @@ export class HotbarIcon extends React.Component<Props> {
   }
 
   get kindIcon() {
-    const className = "badge";
-    const category = catalogCategoryRegistry.getCategoryForEntity(this.props.entity);
+    const category = CatalogCategoryRegistry.getInstance().getCategoryForEntity(this.props.entity);
 
     if (!category) {
-      return <Icon material="bug_report" className={className} />;
+      return <Icon material="bug_report" className="badge" />;
     }
 
     if (category.metadata.icon.includes("<svg")) {
-      return <Icon svg={category.metadata.icon} className={className} />;
-    } else {
-      return <Icon material={category.metadata.icon} className={className} />;
+      return <Icon svg={category.metadata.icon} className="badge" />;
     }
+
+    return <Icon material={category.metadata.icon} className="badge" />;
   }
 
   get ledIcon() {
@@ -113,12 +105,10 @@ export class HotbarIcon extends React.Component<Props> {
   }
 
   remove(item: CatalogEntity) {
-    const hotbar = HotbarStore.getInstance();
-
-    hotbar.removeFromHotbar(item.getId());
+    HotbarStore.getInstance().removeFromHotbar(item.getId());
   }
 
-  onMenuItemClick(menuItem: CatalogEntityContextMenu) {
+  onMenuItemClick(menuItem: ContextMenu) {
     if (menuItem.confirm) {
       ConfirmDialog.open({
         okButtonProps: {
@@ -152,10 +142,9 @@ export class HotbarIcon extends React.Component<Props> {
       active: isActive,
     });
     const onOpen = async () => {
-      await entity.onContextMenuOpen(this.contextMenu);
+      this.menuItems = CatalogCategoryRegistry.getInstance().runEntityHandlersFor(entity, "onContextMenuOpen");
       this.toggleMenu();
     };
-    const menuItems = this.contextMenu?.menuItems.filter((menuItem) => !menuItem.onlyVisibleForSource || menuItem.onlyVisibleForSource === entity.metadata.source);
 
     return (
       <div className={className}>
@@ -183,13 +172,11 @@ export class HotbarIcon extends React.Component<Props> {
           <MenuItem key="remove-from-hotbar" onClick={() => this.remove(entity) }>
             <Icon material="clear" small interactive={true} title="Remove from hotbar"/> Remove from Hotbar
           </MenuItem>
-          { this.contextMenu && menuItems.map((menuItem) => {
-            return (
-              <MenuItem key={menuItem.title} onClick={() => this.onMenuItemClick(menuItem) }>
-                <Icon material={menuItem.icon} small interactive={true} title={menuItem.title}/> {menuItem.title}
-              </MenuItem>
-            );
-          })}
+          {this.menuItems?.map((menuItem) => (
+            <MenuItem key={menuItem.title} onClick={() => this.onMenuItemClick(menuItem)}>
+              <Icon material={menuItem.icon} small interactive={true} title={menuItem.title} /> {menuItem.title}
+            </MenuItem>
+          ))}
         </Menu>
         {children}
       </div>

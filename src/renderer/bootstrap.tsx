@@ -43,6 +43,8 @@ import { ThemeStore } from "./theme.store";
 import { HelmRepoManager } from "../main/helm/helm-repo-manager";
 import { ExtensionInstallationStateStore } from "./components/+extensions/extension-install.store";
 import { DefaultProps } from "./mui-base-theme";
+import { CatalogCategoryRegistry, CatalogEntityRegistry } from "../common/catalog";
+import { registerDefaultCategories } from "../common/default-categories";
 
 /**
  * If this is a development buid, wait a second to attach
@@ -73,6 +75,10 @@ export async function bootstrap(App: AppComponent) {
 
   await attachChromeDebugger();
   rootElem.classList.toggle("is-mac", isMac);
+
+  CatalogCategoryRegistry.createInstance();
+  registerDefaultCategories();
+  CatalogEntityRegistry.createInstance();
 
   ExtensionLoader.createInstance().init();
   ExtensionDiscovery.createInstance().init();
