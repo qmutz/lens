@@ -19,13 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { PrometheusProvider, PrometheusService } from "./prometheus/provider-registry";
+import { PrometheusProvider, PrometheusProviderRegistry, PrometheusService } from "./prometheus/provider-registry";
 import type { ClusterPrometheusPreferences } from "../common/cluster-store";
 import type { Cluster } from "./cluster";
 import type httpProxy from "http-proxy";
 import url, { UrlWithStringQuery } from "url";
 import { CoreV1Api } from "@kubernetes/client-node";
-import { prometheusProviders } from "../common/prometheus-providers";
 import logger from "./logger";
 import { KubeAuthProxy } from "./kube-auth-proxy";
 
@@ -33,7 +32,7 @@ export class ContextHandler {
   public clusterUrl: UrlWithStringQuery;
   protected kubeAuthProxy?: KubeAuthProxy;
   protected apiTarget?: httpProxy.ServerOptions;
-  protected prometheusProvider: string;
+  protected prometheusProvider?: string;
   protected prometheusPath: string | null;
 
   constructor(protected cluster: Cluster) {
@@ -72,19 +71,32 @@ export class ContextHandler {
       this.prometheusProvider = service.id;
     }
 
-    return prometheusProviders.find(p => p.id === this.prometheusProvider);
+    return PrometheusProviderRegistry.getInstance().getByKind(this.prometheusProvider);
   }
 
-  async getPrometheusService(): Promise<PrometheusService> {
-    const providers = this.prometheusProvider ? prometheusProviders.filter(provider => provider.id == this.prometheusProvider) : prometheusProviders;
-    const prometheusPromises: Promise<PrometheusService>[] = providers.map(async (provider: PrometheusProvider): Promise<PrometheusService> => {
-      const apiClient = (await this.cluster.getProxyKubeconfig()).makeApiClient(CoreV1Api);
+  protected listPotentialProviders(): PrometheusProvider[] {
+    const registry = PrometheusProviderRegistry.getInstance();
 
-      return await provider.getPrometheusService(apiClient);
-    });
-    const resolvedPrometheusServices = await Promise.all(prometheusPromises);
+    if (typeof this.prometheusProvider === "string") {
+      return [registry.getByKind(this.prometheusProvider)];
+    }
 
-    return resolvedPrometheusServices.filter(n => n)[0];
+    return Array.from(registry.providers.values());
+  }
+
+  async getPrometheusService(): Promise<PrometheusService | undefined> {
+    const providers = this.listPotentialProviders();
+    const proxyConfig = await this.cluster.getProxyKubeconfig();
+    const apiClient = proxyConfig.makeApiClient(CoreV1Api);
+    const potentialServices = await Promise.allSettled(
+      providers.map(provider => provider.getPrometheusService(apiClient))
+    );
+
+    for (const result of potentialServices) {
+      if (result.status === "fulfilled" && result.value) {
+        return result.value;
+      }
+    }
   }
 
   async getPrometheusPath(): Promise<string> {

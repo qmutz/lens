@@ -25,9 +25,10 @@ import { PrometheusService } from "./provider-registry";
 import logger from "../logger";
 
 export class PrometheusHelm extends PrometheusLens {
-  id = "helm";
-  name = "Helm";
-  rateAccuracy = "5m";
+  readonly id: string = "helm";
+  readonly name: string = "Helm";
+  readonly rateAccuracy: string = "5m";
+  readonly isConfigurable: boolean = false;
 
   public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService> {
     const labelSelector = "app=prometheus,component=server,heritage=Helm";
