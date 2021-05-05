@@ -41,6 +41,7 @@ import { SemVer } from "semver";
 import electron from "electron";
 import { stdout, stderr } from "process";
 import { beforeEachWrapped } from "../../../integration/helpers/utils";
+import { ThemeStore } from "../../renderer/theme.store";
 
 console = new Console(stdout, stderr);
 
@@ -85,7 +86,7 @@ describe("user store tests", () => {
       us.httpsProxy = "abcd://defg";
 
       expect(us.httpsProxy).toBe("abcd://defg");
-      expect(us.colorTheme).toBe(UserStore.defaultTheme);
+      expect(us.colorTheme).toBe(ThemeStore.defaultTheme);
 
       us.colorTheme = "light";
       expect(us.colorTheme).toBe("light");
@@ -98,7 +99,7 @@ describe("user store tests", () => {
 
       us.colorTheme = "some other theme";
       await us.resetTheme();
-      expect(us.colorTheme).toBe(UserStore.defaultTheme);
+      expect(us.colorTheme).toBe(ThemeStore.defaultTheme);
     });
 
     it("correctly calculates if the last seen version is an old release", () => {
