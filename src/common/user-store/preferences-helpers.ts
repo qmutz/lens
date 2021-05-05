@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import path from "path";
 import os from "os";
 import { ThemeStore } from "../../renderer/theme.store";
