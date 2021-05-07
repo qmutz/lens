@@ -51,7 +51,7 @@ const localeTimezone: PreferenceDescription<string> = {
     return val || moment.tz.guess(true) || "UTC";
   },
   toStore(val) {
-    if (!val || val === (moment.tz.guess(true) || "UTC")) {
+    if (!val || val === moment.tz.guess(true) || val === "UTC") {
       return undefined;
     }
 

@@ -23,7 +23,6 @@ import { app, remote } from "electron";
 import semver from "semver";
 import { readFile } from "fs-extra";
 import { action, computed, observable, reaction, toJS } from "mobx";
-import moment from "moment-timezone";
 import { BaseStore } from "../base-store";
 import migrations from "../../migrations/user-store";
 import { getAppVersion } from "../utils/app-version";
@@ -58,11 +57,11 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
   @observable kubeConfigPath = kubeConfigDefaultPath;
   @observable seenContexts = observable.set<string>();
   @observable newContexts = observable.set<string>();
-  @observable allowTelemetry = true;
-  @observable allowUntrustedCAs = false;
+  @observable allowTelemetry: boolean;
+  @observable allowUntrustedCAs: boolean;
   @observable colorTheme: string;
-  @observable localeTimezone = moment.tz.guess(true) || "UTC";
-  @observable downloadMirror = "default";
+  @observable localeTimezone: string;
+  @observable downloadMirror: string;
   @observable httpsProxy?: string;
   @observable shell?: string;
   @observable downloadBinariesPath?: string;
@@ -71,8 +70,8 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
   /**
    * Download kubectl binaries matching cluster version
    */
-  @observable downloadKubectlBinaries = true;
-  @observable openAtLogin = false;
+  @observable downloadKubectlBinaries: boolean;
+  @observable openAtLogin: boolean;
 
   /**
    * The column IDs under each configurable table ID that have been configured
