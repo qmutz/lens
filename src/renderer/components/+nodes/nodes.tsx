@@ -52,8 +52,8 @@ export class Nodes extends React.Component<Props> {
     const usage = metrics[0];
     const cores = metrics[1];
     const cpuUsagePercent = Math.ceil(usage * 100) / cores;
-    const cpuUsagePercentLabel: String = cpuUsagePercent % 1 === 0 
-      ? cpuUsagePercent.toString() 
+    const cpuUsagePercentLabel: String = cpuUsagePercent % 1 === 0
+      ? cpuUsagePercent.toString()
       : cpuUsagePercent.toFixed(2);
 
     return (
@@ -138,7 +138,7 @@ export class Nodes extends React.Component<Props> {
           isConfigurable
           tableId="nodes"
           className="Nodes"
-          store={nodesStore} isClusterScoped
+          store={nodesStore}
           isReady={nodesStore.isLoaded}
           dependentStores={[podsStore]}
           isSelectable={false}

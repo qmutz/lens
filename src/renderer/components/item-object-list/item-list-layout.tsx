@@ -3,7 +3,7 @@ import groupBy from "lodash/groupBy";
 
 import React, { ReactNode } from "react";
 import { computed } from "mobx";
-import { disposeOnUnmount, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { ConfirmDialog, ConfirmDialogParams } from "../confirm-dialog";
 import { Table, TableCell, TableCellProps, TableHead, TableProps, TableRow, TableRowProps, TableSortCallback } from "../table";
 import { autobind, createStorage, cssNames, IClassName, isReactNode, noop, ObservableToggleSet, prevDefault, stopPropagation } from "../../utils";
@@ -15,7 +15,6 @@ import { SearchInputUrl } from "../input";
 import { Filter, FilterType, pageFilters } from "./page-filters.store";
 import { PageFiltersList } from "./page-filters-list";
 import { PageFiltersSelect } from "./page-filters-select";
-import { NamespaceSelectFilter } from "../+namespaces/namespace-select-filter";
 import { ThemeStore } from "../../theme.store";
 import { MenuActions } from "../menu/menu-actions";
 import { MenuItem } from "../menu";
@@ -42,7 +41,6 @@ export interface ItemListLayoutProps<T extends ItemObject = ItemObject> {
   store: ItemStore<T>;
   dependentStores?: ItemStore[];
   preloadStores?: boolean;
-  isClusterScoped?: boolean;
   hideFilters?: boolean;
   searchFilters?: SearchFilter<T>[];
   /** @deprecated */
@@ -111,7 +109,7 @@ export class ItemListLayout extends React.Component<ItemListLayoutProps> {
   }
 
   async componentDidMount() {
-    const { isClusterScoped, isConfigurable, tableId, preloadStores } = this.props;
+    const { isConfigurable, tableId, preloadStores } = this.props;
 
     if (isConfigurable && !tableId) {
       throw new Error("[ItemListLayout]: configurable list require props.tableId to be specified");
@@ -123,12 +121,6 @@ export class ItemListLayout extends React.Component<ItemListLayoutProps> {
 
     if (preloadStores) {
       this.loadStores();
-
-      if (!isClusterScoped) {
-        disposeOnUnmount(this, [
-          namespaceStore.onContextChange(() => this.loadStores())
-        ]);
-      }
     }
   }
 
@@ -369,7 +361,7 @@ export class ItemListLayout extends React.Component<ItemListLayoutProps> {
   }
 
   renderHeader() {
-    const { showHeader, customizeHeader, renderHeaderTitle, headerClassName, isClusterScoped } = this.props;
+    const { showHeader, customizeHeader, renderHeaderTitle, headerClassName } = this.props;
 
     if (!showHeader) return;
     const title = typeof renderHeaderTitle === "function" ? renderHeaderTitle(this) : renderHeaderTitle;
@@ -377,7 +369,6 @@ export class ItemListLayout extends React.Component<ItemListLayoutProps> {
       title: <h5 className="title">{title}</h5>,
       info: this.renderInfo(),
       filters: <>
-        {!isClusterScoped && <NamespaceSelectFilter/>}
         <PageFiltersSelect allowEmpty disableFilters={{
           [FilterType.NAMESPACE]: true, // namespace-select used instead
         }}/>

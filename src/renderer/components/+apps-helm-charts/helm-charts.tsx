@@ -60,7 +60,6 @@ export class HelmCharts extends Component<Props> {
           tableId="helm_charts"
           className="HelmCharts"
           store={helmChartStore}
-          isClusterScoped={true}
           isSelectable={false}
           sortingCallbacks={{
             [columnId.name]: (chart: HelmChart) => chart.getName(),

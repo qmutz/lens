@@ -142,7 +142,6 @@ export class Catalog extends React.Component {
         contentGaps={false}>
         <ItemListLayout
           renderHeaderTitle={this.catalogEntityStore.activeCategory?.metadata.name ?? "Browse All"}
-          isClusterScoped
           isSearchable={true}
           isSelectable={false}
           className="CatalogItemList"

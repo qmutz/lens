@@ -26,7 +26,6 @@ export class Namespaces extends React.Component<Props> {
     return (
       <TabLayout>
         <KubeObjectListLayout
-          isClusterScoped
           isConfigurable
           tableId="namespaces"
           className="Namespaces" store={namespaceStore}
