@@ -8,6 +8,8 @@ import { MainLayoutHeader } from "../main-layout-header";
 import { Cluster } from "../../../../main/cluster";
 import { ClusterStore } from "../../../../common/cluster-store";
 import mockFs from "mock-fs";
+import { ThemeStore } from "../../../theme.store";
+import { UserStore } from "../../../../common/user-store";
 
 describe("<MainLayoutHeader />", () => {
   let cluster: Cluster;
@@ -39,6 +41,8 @@ describe("<MainLayoutHeader />", () => {
 
     mockFs(mockOpts);
 
+    UserStore.createInstance();
+    ThemeStore.createInstance();
     ClusterStore.createInstance();
 
     cluster = new Cluster({
@@ -50,6 +54,8 @@ describe("<MainLayoutHeader />", () => {
 
   afterEach(() => {
     ClusterStore.resetInstance();
+    ThemeStore.resetInstance();
+    UserStore.resetInstance();
     mockFs.restore();
   });
 
