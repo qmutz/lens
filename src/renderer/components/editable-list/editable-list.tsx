@@ -47,6 +47,7 @@ export class EditableList<T> extends React.Component<Props<T>> {
         <div className="el-header">
           <Input
             theme="round-black"
+            required
             value={this.currentNewItem}
             onSubmit={this.onSubmit}
             validators={validators}
