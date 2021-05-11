@@ -4,6 +4,7 @@ import { Cluster } from "../../../../main/cluster";
 import { SubTitle } from "../../layout/sub-title";
 import { EditableList } from "../../editable-list";
 import { observable } from "mobx";
+import { systemName } from "../../input/input_validators";
 
 interface Props {
   cluster: Cluster;
@@ -23,6 +24,7 @@ export class ClusterAccessibleNamespaces extends React.Component<Props> {
             this.namespaces.add(newNamespace);
             this.props.cluster.accessibleNamespaces = Array.from(this.namespaces);
           }}
+          validators={systemName}
           items={Array.from(this.namespaces)}
           remove={({ oldItem: oldNamesapce }) => {
             this.namespaces.delete(oldNamesapce);
