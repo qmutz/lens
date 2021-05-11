@@ -5,7 +5,7 @@ import { disposeOnUnmount, observer } from "mobx-react";
 import React from "react";
 
 import { KubeEventDetails } from "../../+events/kube-event-details";
-import { RoleBinding, RoleBindingSubject } from "../../../api/endpoints";
+import { ClusterRoleBinding, ClusterRoleBindingSubject } from "../../../api/endpoints";
 import { kubeObjectDetailRegistry } from "../../../api/kube-object-detail-registry";
 import { autobind, prevDefault } from "../../../utils";
 import { AddRemoveButtons } from "../../add-remove-buttons";
@@ -17,12 +17,12 @@ import { Table, TableCell, TableHead, TableRow } from "../../table";
 import { AddClusterRoleBindingDialog } from "./add-dialog";
 import { clusterRoleBindingsStore } from "./store";
 
-interface Props extends KubeObjectDetailsProps<RoleBinding> {
+interface Props extends KubeObjectDetailsProps<ClusterRoleBinding> {
 }
 
 @observer
-export class RoleBindingDetails extends React.Component<Props> {
-  @observable selectedSubjects = observable.array<RoleBindingSubject>([], { deep: false });
+export class ClusterRoleBindingDetails extends React.Component<Props> {
+  @observable selectedSubjects = observable.array<ClusterRoleBindingSubject>([], { deep: false });
 
   async componentDidMount() {
     disposeOnUnmount(this, [
@@ -32,7 +32,7 @@ export class RoleBindingDetails extends React.Component<Props> {
     ]);
   }
 
-  selectSubject(subject: RoleBindingSubject) {
+  selectSubject(subject: ClusterRoleBindingSubject) {
     const { selectedSubjects } = this;
     const isSelected = selectedSubjects.includes(subject);
 
@@ -92,22 +92,21 @@ export class RoleBindingDetails extends React.Component<Props> {
               <TableCell checkbox/>
               <TableCell className="binding">Binding</TableCell>
               <TableCell className="type">Type</TableCell>
-              <TableCell className="type">Namespace</TableCell>
             </TableHead>
             {
               subjects.map((subject, i) => {
-                const { kind, name, namespace } = subject;
+                const { kind, name } = subject;
                 const isSelected = selectedSubjects.includes(subject);
 
                 return (
                   <TableRow
-                    key={i} selected={isSelected}
+                    key={i}
+                    selected={isSelected}
                     onClick={prevDefault(() => this.selectSubject(subject))}
                   >
                     <TableCell checkbox isChecked={isSelected}/>
                     <TableCell className="binding">{name}</TableCell>
                     <TableCell className="type">{kind}</TableCell>
-                    <TableCell className="ns">{namespace || "-"}</TableCell>
                   </TableRow>
                 );
               })
@@ -127,27 +126,10 @@ export class RoleBindingDetails extends React.Component<Props> {
 }
 
 kubeObjectDetailRegistry.add({
-  kind: "RoleBinding",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  components: {
-    Details: (props) => <RoleBindingDetails {...props} />
-  }
-});
-kubeObjectDetailRegistry.add({
-  kind: "RoleBinding",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  priority: 5,
-  components: {
-    Details: (props) => <KubeEventDetails {...props} />
-  }
-});
-
-
-kubeObjectDetailRegistry.add({
   kind: "ClusterRoleBinding",
   apiVersions: ["rbac.authorization.k8s.io/v1"],
   components: {
-    Details: (props) => <RoleBindingDetails {...props} />
+    Details: (props) => <ClusterRoleBindingDetails {...props} />
   }
 });
 kubeObjectDetailRegistry.add({

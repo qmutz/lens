@@ -7,9 +7,9 @@ import React from "react";
 import { serviceAccountsStore } from "../+service-accounts/store";
 import { namespaceStore } from "../../+namespaces/namespace.store";
 import { ClusterRoleBinding, ClusterRoleBindingSubject, ServiceAccount } from "../../../api/endpoints";
-import { KubeObject } from "../../../api/kube-object";
 import { KubeObjectStore } from "../../../kube-object.store";
 import { Dialog, DialogProps } from "../../dialog";
+import { EditableList } from "../../editable-list";
 import { Icon } from "../../icon";
 import { showDetails } from "../../kube-object";
 import { SubTitle } from "../../layout/sub-title";
@@ -48,7 +48,9 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
   @observable isLoading = false;
   @observable bindingName = "";
   @observable selectedRoleId = "";
-  @observable selectedAccounts = observable.array<ServiceAccount>([], { deep: false });
+  selectedAccounts = observable.array<ServiceAccount>([], { deep: false });
+  selectedUsers = observable.set<string>([]);
+  selectedGroups = observable.set<string>([]);
 
   @computed get isEditing() {
     return !!this.roleBinding;
@@ -58,9 +60,24 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
     return clusterRoleBindingsStore.items.find(role => role.getId() === this.selectedRoleId);
   }
 
-  @computed get selectedBindings() {
+  @computed get selectedBindings(): ClusterRoleBindingSubject[] {
+    const serviceAccounts: ClusterRoleBindingSubject[] = this.selectedAccounts.map(sa => ({
+      name: sa.getName(),
+      kind: "ServiceAccount",
+    }));
+    const users: ClusterRoleBindingSubject[] = Array.from(this.selectedUsers, user => ({
+      name: user,
+      kind: "User",
+    }));
+    const groups: ClusterRoleBindingSubject[] = Array.from(this.selectedGroups, group => ({
+      name: group,
+      kind: "Group",
+    }));
+
     return [
-      ...this.selectedAccounts,
+      ...serviceAccounts,
+      ...users,
+      ...groups,
     ];
   }
 
@@ -102,28 +119,17 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
   createBindings = async () => {
     const { selectedRole, selectedBindings, bindingName } = this;
 
-    const subjects = selectedBindings.map((item: KubeObject | ClusterRoleBindingSubject) => {
-      if (item instanceof KubeObject) {
-        return {
-          name: item.getName(),
-          kind: item.kind,
-        };
-      }
-
-      return item;
-    });
-
     try {
       let roleBinding: ClusterRoleBinding;
 
       if (this.isEditing) {
         roleBinding = await clusterRoleBindingsStore.updateSubjects({
           roleBinding: this.roleBinding,
-          addSubjects: subjects,
+          addSubjects: selectedBindings,
         });
       } else {
         roleBinding = await clusterRoleBindingsStore.create({ name: bindingName }, {
-          subjects,
+          subjects: selectedBindings,
           roleRef: {
             name: selectedRole.getName(),
             kind: selectedRole.kind,
@@ -152,7 +158,7 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
       return {
         item: account,
         value: name,
-        label: <><Icon small material="account_box"/> {name} ({namespace})</>
+        label: <><Icon small material="account_box" /> {name} ({namespace})</>
       };
     });
   }
@@ -174,14 +180,31 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
         />
 
         <SubTitle title="Binding targets"/>
+
+        <b>Users</b>
+        <EditableList
+          placeholder="Bind to User Account ..."
+          add={(newUser) => this.selectedUsers.add(newUser)}
+          items={Array.from(this.selectedUsers)}
+          remove={({ oldItem }) => this.selectedUsers.delete(oldItem)}
+        />
+
+        <b>Groups</b>
+        <EditableList
+          placeholder="Bind to User Group ..."
+          add={(newGroup) => this.selectedGroups.add(newGroup)}
+          items={Array.from(this.selectedGroups)}
+          remove={({ oldItem }) => this.selectedGroups.delete(oldItem)}
+        />
+
+        <b>Service Accounts</b>
         <Select
           isMulti
           themeName="light"
           placeholder="Select service accounts"
           autoConvertOptions={false}
           options={this.serviceAccountOptions}
-          onChange={(opts: BindingSelectOption[]) => {
-            if (!opts) opts = [];
+          onChange={(opts: BindingSelectOption[] = []) => {
             this.selectedAccounts.replace(unwrapBindings(opts));
           }}
           maxMenuHeight={200}
@@ -213,9 +236,13 @@ export class AddClusterRoleBindingDialog extends React.Component<Props> {
         onOpen={this.onOpen}
         close={this.close}
       >
-        <Wizard header={header} done={this.close}>
+        <Wizard
+          header={header}
+          done={this.close}
+        >
           <WizardStep
-            nextLabel={nextLabel} next={this.createBindings}
+            nextLabel={nextLabel}
+            next={this.createBindings}
             disabledNext={disableNext}
             loading={this.isLoading}
           >

@@ -1,8 +1,10 @@
 import { KubeApi } from "../kube-api";
 import { KubeObject } from "../kube-object";
 
+export type ClusterRoleBindingSubjectKind = "Group" | "ServiceAccount" | "User";
+
 export interface ClusterRoleBindingSubject {
-  kind: string;
+  kind: ClusterRoleBindingSubjectKind;
   name: string;
   apiGroup?: string;
 }

@@ -16,9 +16,6 @@ export class ClusterRoleBindingsStore extends KubeObjectStore<ClusterRoleBinding
       roleBinding => roleBinding.getName()
     ]);
   }
-  protected async createItem(params: { name: string; }, data?: Partial<ClusterRoleBinding>) {
-    return clusterRoleBindingApi.create(params, data);
-  }
 
   async updateSubjects(params: {
     roleBinding: ClusterRoleBinding;

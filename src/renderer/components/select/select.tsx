@@ -2,13 +2,14 @@
 // API docs: https://react-select.com/
 import "./select.scss";
 
-import React, { ReactNode } from "react";
 import { computed } from "mobx";
 import { observer } from "mobx-react";
-import { autobind, cssNames } from "../../utils";
+import React, { ReactNode } from "react";
 import ReactSelect, { ActionMeta, components, Props as ReactSelectProps, Styles } from "react-select";
 import Creatable, { CreatableProps } from "react-select/creatable";
+
 import { ThemeStore } from "../../theme.store";
+import { autobind, cssNames } from "../../utils";
 
 const { Menu } = components;
 
@@ -39,8 +40,10 @@ export class Select extends React.Component<SelectProps> {
     menuPlacement: "auto",
   };
 
-  @computed get theme() {
-    return this.props.themeName || ThemeStore.getInstance().activeTheme.type;
+  @computed get themeClass() {
+    const themeName = this.props.themeName || ThemeStore.getInstance().activeTheme.type;
+
+    return `theme-${themeName}`;
   }
 
   private styles: Styles = {
@@ -102,7 +105,6 @@ export class Select extends React.Component<SelectProps> {
       className, menuClass, isCreatable, autoConvertOptions,
       value, options, components = {}, ...props
     } = this.props;
-    const themeClass = `theme-${this.theme}`;
     const WrappedMenu = components.Menu ?? Menu;
 
     const selectProps: Partial<SelectProps> = {
@@ -112,14 +114,14 @@ export class Select extends React.Component<SelectProps> {
       options: autoConvertOptions ? this.options : options,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
-      className: cssNames("Select", themeClass, className),
+      className: cssNames("Select", this.themeClass, className),
       classNamePrefix: "Select",
       components: {
         ...components,
         Menu: props => (
           <WrappedMenu
             {...props}
-            className={cssNames(menuClass, themeClass, props.className)}
+            className={cssNames(menuClass, this.themeClass, props.className)}
           />
         ),
       }

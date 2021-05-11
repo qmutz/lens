@@ -9,9 +9,9 @@ import { serviceAccountsStore } from "../+service-accounts/store";
 import { NamespaceSelect } from "../../+namespaces/namespace-select";
 import { namespaceStore } from "../../+namespaces/namespace.store";
 import { RoleBinding, RoleBindingSubject, ServiceAccount } from "../../../api/endpoints";
-import { KubeObject } from "../../../api/kube-object";
 import { KubeObjectStore } from "../../../kube-object.store";
 import { Dialog, DialogProps } from "../../dialog";
+import { EditableList } from "../../editable-list";
 import { Icon } from "../../icon";
 import { showDetails } from "../../kube-object";
 import { SubTitle } from "../../layout/sub-title";
@@ -51,7 +51,9 @@ export class AddRoleBindingDialog extends React.Component<Props> {
   @observable selectedRoleId = "";
   @observable bindingName = ""; // new role-binding name
   @observable bindToNamespace = "";
-  @observable selectedAccounts = observable.array<ServiceAccount>([], { deep: false });
+  selectedAccounts = observable.array<ServiceAccount>([], { deep: false });
+  selectedUsers = observable.set<string>([]);
+  selectedGroups = observable.set<string>([]);
 
   @computed get isEditing() {
     return !!this.roleBinding;
@@ -61,9 +63,27 @@ export class AddRoleBindingDialog extends React.Component<Props> {
     return rolesStore.items.find(role => role.getId() === this.selectedRoleId);
   }
 
-  @computed get selectedBindings() {
+  @computed get selectedBindings(): RoleBindingSubject[] {
+    const serviceAccounts: RoleBindingSubject[] = this.selectedAccounts.map(sa => ({
+      name: sa.getName(),
+      kind: "ServiceAccount",
+      namespace: this.bindToNamespace,
+    }));
+    const users: RoleBindingSubject[] = Array.from(this.selectedUsers, user => ({
+      name: user,
+      kind: "User",
+      namespace: this.bindToNamespace,
+    }));
+    const groups: RoleBindingSubject[] = Array.from(this.selectedGroups, group => ({
+      name: group,
+      kind: "Group",
+      namespace: this.bindToNamespace,
+    }));
+
     return [
-      ...this.selectedAccounts,
+      ...serviceAccounts,
+      ...users,
+      ...groups,
     ];
   }
 
@@ -115,27 +135,15 @@ export class AddRoleBindingDialog extends React.Component<Props> {
   createBindings = async () => {
     const { selectedRole, bindToNamespace: namespace, selectedBindings } = this;
 
-    const subjects = selectedBindings.map((item: KubeObject | RoleBindingSubject) => {
-      if (item instanceof KubeObject) {
-        return {
-          name: item.getName(),
-          kind: item.kind,
-          namespace: item.getNs(),
-        };
-      }
-
-      return item;
-    });
-
     try {
       const roleBinding = await (
         this.isEditing
           ? roleBindingsStore.updateSubjects({
             roleBinding: this.roleBinding,
-            addSubjects: subjects,
+            addSubjects: selectedBindings,
           })
           : roleBindingsStore.create({ name: selectedRole.getName(), namespace }, {
-            subjects,
+            subjects: selectedBindings,
             roleRef: {
               name: selectedRole.getName(),
               kind: selectedRole.kind,
@@ -155,21 +163,22 @@ export class AddRoleBindingDialog extends React.Component<Props> {
       .filter(role => role.getNs() === this.bindToNamespace)
       .map(role => ({
         value: role.getId(),
-        label: `${role.getName()} (${role.getNs()})`,
+        label: role.getName(),
       }));
   }
 
   @computed get serviceAccountOptions(): BindingSelectOption[] {
-    return serviceAccountsStore.items.map(account => {
-      const name = account.getName();
-      const namespace = account.getNs();
+    return serviceAccountsStore.items
+      .filter(role => role.getNs() === this.bindToNamespace)
+      .map(account => {
+        const name = account.getName();
 
-      return {
-        item: account,
-        value: name,
-        label: <><Icon small material="account_box"/> {name} ({namespace})</>
-      };
-    });
+        return {
+          item: account,
+          value: name,
+          label: <><Icon small material="account_box"/> {name}</>
+        };
+      });
   }
 
   renderContents() {
@@ -177,7 +186,7 @@ export class AddRoleBindingDialog extends React.Component<Props> {
 
     return (
       <>
-        <SubTitle title="Context"/>
+        <SubTitle title="Namespace"/>
         <NamespaceSelect
           themeName="light"
           isDisabled={this.isEditing}
@@ -190,44 +199,39 @@ export class AddRoleBindingDialog extends React.Component<Props> {
           key={this.selectedRoleId}
           themeName="light"
           placeholder="Select role.."
-          isDisabled={this.isEditing}
+          isDisabled={this.isEditing || !this.bindToNamespace}
           options={this.roleOptions}
           value={this.selectedRoleId}
           onChange={({ value }) => this.selectedRoleId = value}
         />
-        {/* {
-          !this.isEditing && (
-            <>
-              <Checkbox
-                theme="light"
-                label="Use same name for RoleBinding"
-                value={this.useRoleForBindingName}
-                onChange={v => this.useRoleForBindingName = v}
-              />
-              {
-                !this.useRoleForBindingName && (
-                  <Input
-                    autoFocus
-                    placeholder="Name"
-                    disabled={this.isEditing}
-                    value={this.bindingName}
-                    onChange={v => this.bindingName = v}
-                  />
-                )
-              }
-            </>
-          )
-        } */}
 
-        <SubTitle title="Binding targets"/>
+        <SubTitle title="Binding targets" />
+
+        <b>Users</b>
+        <EditableList
+          placeholder="Bind to User Account ..."
+          add={(newUser) => this.selectedUsers.add(newUser)}
+          items={Array.from(this.selectedUsers)}
+          remove={({ oldItem }) => this.selectedUsers.delete(oldItem)}
+        />
+
+        <b>Groups</b>
+        <EditableList
+          placeholder="Bind to User Group ..."
+          add={(newGroup) => this.selectedGroups.add(newGroup)}
+          items={Array.from(this.selectedGroups)}
+          remove={({ oldItem }) => this.selectedGroups.delete(oldItem)}
+        />
+
+        <b>Service Accounts</b>
         <Select
           isMulti
           themeName="light"
           placeholder="Select service accounts"
           autoConvertOptions={false}
+          isDisabled={!this.bindToNamespace}
           options={this.serviceAccountOptions}
-          onChange={(opts: BindingSelectOption[]) => {
-            if (!opts) opts = [];
+          onChange={(opts: BindingSelectOption[] = []) => {
             this.selectedAccounts.replace(unwrapBindings(opts));
           }}
           maxMenuHeight={200}
@@ -259,9 +263,13 @@ export class AddRoleBindingDialog extends React.Component<Props> {
         onOpen={this.onOpen}
         close={this.close}
       >
-        <Wizard header={header} done={this.close}>
+        <Wizard
+          header={header}
+          done={this.close}
+        >
           <WizardStep
-            nextLabel={nextLabel} next={this.createBindings}
+            nextLabel={nextLabel}
+            next={this.createBindings}
             disabledNext={disableNext}
             loading={this.isLoading}
           >
