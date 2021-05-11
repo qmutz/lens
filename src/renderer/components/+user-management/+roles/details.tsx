@@ -1,13 +1,14 @@
-import "./role-details.scss";
+import "./details.scss";
 
-import React from "react";
-import { DrawerTitle } from "../drawer";
-import { KubeEventDetails } from "../+events/kube-event-details";
 import { observer } from "mobx-react";
-import { KubeObjectDetailsProps } from "../kube-object";
-import { Role } from "../../api/endpoints";
-import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
+import React from "react";
+
+import { KubeEventDetails } from "../../+events/kube-event-details";
+import { Role } from "../../../api/endpoints";
+import { kubeObjectDetailRegistry } from "../../../api/kube-object-detail-registry";
+import { DrawerTitle } from "../../drawer";
+import { KubeObjectDetailsProps } from "../../kube-object";
+import { KubeObjectMeta } from "../../kube-object/kube-object-meta";
 
 interface Props extends KubeObjectDetailsProps<Role> {
 }
@@ -23,7 +24,6 @@ export class RoleDetails extends React.Component<Props> {
     return (
       <div className="RoleDetails">
         <KubeObjectMeta object={role}/>
-
         <DrawerTitle title="Rules"/>
         {rules.map(({ resourceNames, apiGroups, resources, verbs }, index) => {
           return (
@@ -78,21 +78,5 @@ kubeObjectDetailRegistry.add({
   priority: 5,
   components: {
     Details: (props) => <KubeEventDetails {...props} />
-  }
-});
-
-kubeObjectDetailRegistry.add({
-  kind: "ClusterRole",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  components: {
-    Details: (props) => <RoleDetails {...props}/>
-  }
-});
-kubeObjectDetailRegistry.add({
-  kind: "ClusterRole",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  priority: 5,
-  components: {
-    Details: (props) => <KubeEventDetails {...props}/>
   }
 });

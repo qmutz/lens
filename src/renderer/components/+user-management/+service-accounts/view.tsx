@@ -1,19 +1,20 @@
-import "./service-accounts.scss";
+import "./view.scss";
 
-import React from "react";
 import { observer } from "mobx-react";
-import { ServiceAccount } from "../../api/endpoints/service-accounts.api";
+import React from "react";
 import { RouteComponentProps } from "react-router";
-import { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
-import { MenuItem } from "../menu";
-import { openServiceAccountKubeConfig } from "../kubeconfig-dialog";
-import { Icon } from "../icon";
-import { KubeObjectListLayout } from "../kube-object";
-import { IServiceAccountsRouteParams } from "../+user-management";
-import { serviceAccountsStore } from "./service-accounts.store";
-import { CreateServiceAccountDialog } from "./create-service-account-dialog";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
-import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+
+import { ServiceAccountsRouteParams } from "..";
+import { kubeObjectMenuRegistry } from "../../../../extensions/registries/kube-object-menu-registry";
+import { ServiceAccount } from "../../../api/endpoints/service-accounts.api";
+import { Icon } from "../../icon";
+import { KubeObjectListLayout } from "../../kube-object";
+import { KubeObjectStatusIcon } from "../../kube-object-status-icon";
+import { KubeObjectMenuProps } from "../../kube-object/kube-object-menu";
+import { openServiceAccountKubeConfig } from "../../kubeconfig-dialog";
+import { MenuItem } from "../../menu";
+import { CreateServiceAccountDialog } from "./create-dialog";
+import { serviceAccountsStore } from "./store";
 
 enum columnId {
   name = "name",
@@ -21,7 +22,7 @@ enum columnId {
   age = "age",
 }
 
-interface Props extends RouteComponentProps<IServiceAccountsRouteParams> {
+interface Props extends RouteComponentProps<ServiceAccountsRouteParams> {
 }
 
 @observer

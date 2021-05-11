@@ -1,14 +1,15 @@
-import "./roles.scss";
+import "./view.scss";
 
-import React from "react";
 import { observer } from "mobx-react";
+import React from "react";
 import { RouteComponentProps } from "react-router";
-import { IRolesRouteParams } from "../+user-management/user-management.route";
-import { rolesStore } from "./roles.store";
-import { Role } from "../../api/endpoints";
-import { KubeObjectListLayout } from "../kube-object";
-import { AddRoleDialog } from "./add-role-dialog";
-import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+
+import { Role } from "../../../api/endpoints";
+import { KubeObjectListLayout } from "../../kube-object";
+import { KubeObjectStatusIcon } from "../../kube-object-status-icon";
+import { RolesRouteParams } from "../user-management.route";
+import { AddRoleDialog } from "./add-dialog";
+import { rolesStore } from "./store";
 
 enum columnId {
   name = "name",
@@ -16,7 +17,7 @@ enum columnId {
   age = "age",
 }
 
-interface Props extends RouteComponentProps<IRolesRouteParams> {
+interface Props extends RouteComponentProps<RolesRouteParams> {
 }
 
 @observer
@@ -47,7 +48,7 @@ export class Roles extends React.Component<Props> {
           renderTableContents={(role: Role) => [
             role.getName(),
             <KubeObjectStatusIcon key="icon" object={role} />,
-            role.getNs() || "-",
+            role.getNs(),
             role.getAge(),
           ]}
           addRemoveButtons={{

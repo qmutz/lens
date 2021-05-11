@@ -1,16 +1,17 @@
-import "./add-role-dialog.scss";
+import "./add-dialog.scss";
 
-import React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { Dialog, DialogProps } from "../dialog";
-import { Wizard, WizardStep } from "../wizard";
-import { SubTitle } from "../layout/sub-title";
-import { Notifications } from "../notifications";
-import { rolesStore } from "./roles.store";
-import { Input } from "../input";
-import { NamespaceSelect } from "../+namespaces/namespace-select";
-import { showDetails } from "../kube-object";
+import React from "react";
+
+import { NamespaceSelect } from "../../+namespaces/namespace-select";
+import { Dialog, DialogProps } from "../../dialog";
+import { Input } from "../../input";
+import { showDetails } from "../../kube-object";
+import { SubTitle } from "../../layout/sub-title";
+import { Notifications } from "../../notifications";
+import { Wizard, WizardStep } from "../../wizard";
+import { rolesStore } from "./store";
 
 interface Props extends Partial<DialogProps> {
 }

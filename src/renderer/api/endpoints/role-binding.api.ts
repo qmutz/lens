@@ -1,11 +1,11 @@
 import { autobind } from "../../utils";
-import { KubeObject } from "../kube-object";
 import { KubeApi } from "../kube-api";
+import { KubeObject } from "../kube-object";
 
-export interface IRoleBindingSubject {
+export interface RoleBindingSubject {
   kind: string;
   name: string;
-  namespace?: string;
+  namespace: string;
   apiGroup?: string;
 }
 
@@ -15,7 +15,7 @@ export class RoleBinding extends KubeObject {
   static namespaced = true;
   static apiBase = "/apis/rbac.authorization.k8s.io/v1/rolebindings";
 
-  subjects?: IRoleBindingSubject[];
+  subjects?: RoleBindingSubject[];
   roleRef: {
     kind: string;
     name: string;

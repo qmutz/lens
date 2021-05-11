@@ -1,27 +1,28 @@
-import "./role-binding-details.scss";
+import "./details.scss";
 
-import React from "react";
-import { AddRemoveButtons } from "../add-remove-buttons";
-import { IRoleBindingSubject, RoleBinding } from "../../api/endpoints";
-import { autobind, prevDefault } from "../../utils";
-import { Table, TableCell, TableHead, TableRow } from "../table";
-import { ConfirmDialog } from "../confirm-dialog";
-import { DrawerTitle } from "../drawer";
-import { KubeEventDetails } from "../+events/kube-event-details";
-import { disposeOnUnmount, observer } from "mobx-react";
 import { observable, reaction } from "mobx";
-import { roleBindingsStore } from "./role-bindings.store";
-import { AddRoleBindingDialog } from "./add-role-binding-dialog";
-import { KubeObjectDetailsProps } from "../kube-object";
-import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
+import { disposeOnUnmount, observer } from "mobx-react";
+import React from "react";
+
+import { KubeEventDetails } from "../../+events/kube-event-details";
+import { RoleBinding, RoleBindingSubject } from "../../../api/endpoints";
+import { kubeObjectDetailRegistry } from "../../../api/kube-object-detail-registry";
+import { autobind, prevDefault } from "../../../utils";
+import { AddRemoveButtons } from "../../add-remove-buttons";
+import { ConfirmDialog } from "../../confirm-dialog";
+import { DrawerTitle } from "../../drawer";
+import { KubeObjectDetailsProps } from "../../kube-object";
+import { KubeObjectMeta } from "../../kube-object/kube-object-meta";
+import { Table, TableCell, TableHead, TableRow } from "../../table";
+import { AddRoleBindingDialog } from "./add-dialog";
+import { roleBindingsStore } from "./store";
 
 interface Props extends KubeObjectDetailsProps<RoleBinding> {
 }
 
 @observer
 export class RoleBindingDetails extends React.Component<Props> {
-  @observable selectedSubjects = observable.array<IRoleBindingSubject>([], { deep: false });
+  @observable selectedSubjects = observable.array<RoleBindingSubject>([], { deep: false });
 
   async componentDidMount() {
     disposeOnUnmount(this, [
@@ -31,7 +32,7 @@ export class RoleBindingDetails extends React.Component<Props> {
     ]);
   }
 
-  selectSubject(subject: IRoleBindingSubject) {
+  selectSubject(subject: RoleBindingSubject) {
     const { selectedSubjects } = this;
     const isSelected = selectedSubjects.includes(subject);
 
@@ -134,23 +135,6 @@ kubeObjectDetailRegistry.add({
 });
 kubeObjectDetailRegistry.add({
   kind: "RoleBinding",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  priority: 5,
-  components: {
-    Details: (props) => <KubeEventDetails {...props} />
-  }
-});
-
-
-kubeObjectDetailRegistry.add({
-  kind: "ClusterRoleBinding",
-  apiVersions: ["rbac.authorization.k8s.io/v1"],
-  components: {
-    Details: (props) => <RoleBindingDetails {...props} />
-  }
-});
-kubeObjectDetailRegistry.add({
-  kind: "ClusterRoleBinding",
   apiVersions: ["rbac.authorization.k8s.io/v1"],
   priority: 5,
   components: {

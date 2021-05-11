@@ -1,30 +1,29 @@
-import "./add-role-binding-dialog.scss";
+import "./add-dialog.scss";
 
-import React from "react";
 import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
-import { Dialog, DialogProps } from "../dialog";
-import { Wizard, WizardStep } from "../wizard";
-import { Select, SelectOption } from "../select";
-import { SubTitle } from "../layout/sub-title";
-import { IRoleBindingSubject, Role, RoleBinding, ServiceAccount } from "../../api/endpoints";
-import { Icon } from "../icon";
-import { Input } from "../input";
-import { NamespaceSelect } from "../+namespaces/namespace-select";
-import { Checkbox } from "../checkbox";
-import { KubeObject } from "../../api/kube-object";
-import { Notifications } from "../notifications";
-import { rolesStore } from "../+user-management-roles/roles.store";
-import { namespaceStore } from "../+namespaces/namespace.store";
-import { serviceAccountsStore } from "../+user-management-service-accounts/service-accounts.store";
-import { roleBindingsStore } from "./role-bindings.store";
-import { showDetails } from "../kube-object";
-import { KubeObjectStore } from "../../kube-object.store";
+import React from "react";
+
+import { rolesStore } from "../+roles/store";
+import { serviceAccountsStore } from "../+service-accounts/store";
+import { NamespaceSelect } from "../../+namespaces/namespace-select";
+import { namespaceStore } from "../../+namespaces/namespace.store";
+import { RoleBinding, RoleBindingSubject, ServiceAccount } from "../../../api/endpoints";
+import { KubeObject } from "../../../api/kube-object";
+import { KubeObjectStore } from "../../../kube-object.store";
+import { Dialog, DialogProps } from "../../dialog";
+import { Icon } from "../../icon";
+import { showDetails } from "../../kube-object";
+import { SubTitle } from "../../layout/sub-title";
+import { Notifications } from "../../notifications";
+import { Select, SelectOption } from "../../select";
+import { Wizard, WizardStep } from "../../wizard";
+import { roleBindingsStore } from "./store";
 
 interface BindingSelectOption extends SelectOption {
   value: string; // binding name
   item?: ServiceAccount | any;
-  subject?: IRoleBindingSubject; // used for new user/group when users-management-api not available
+  subject?: RoleBindingSubject; // used for new user/group when users-management-api not available
 }
 
 interface Props extends Partial<DialogProps> {
@@ -50,9 +49,8 @@ export class AddRoleBindingDialog extends React.Component<Props> {
 
   @observable isLoading = false;
   @observable selectedRoleId = "";
-  @observable useRoleForBindingName = true;
   @observable bindingName = ""; // new role-binding name
-  @observable bindContext = ""; // empty value means "cluster-wide", otherwise bind to namespace
+  @observable bindToNamespace = "";
   @observable selectedAccounts = observable.array<ServiceAccount>([], { deep: false });
 
   @computed get isEditing() {
@@ -94,30 +92,30 @@ export class AddRoleBindingDialog extends React.Component<Props> {
 
       if (role) {
         this.selectedRoleId = role.getId();
-        this.bindContext = role.getNs() || "";
+        this.bindToNamespace = role.getNs();
       }
     }
   };
 
   reset = () => {
     this.selectedRoleId = "";
-    this.bindContext = "";
+    this.bindToNamespace = "";
     this.selectedAccounts.clear();
   };
 
   onBindContextChange = (namespace: string) => {
-    this.bindContext = namespace;
+    this.bindToNamespace = namespace;
     const roleContext = this.selectedRole && this.selectedRole.getNs() || "";
 
-    if (this.bindContext && this.bindContext !== roleContext) {
+    if (this.bindToNamespace && this.bindToNamespace !== roleContext) {
       this.selectedRoleId = ""; // reset previously selected role for specific context
     }
   };
 
   createBindings = async () => {
-    const { selectedRole, bindContext: namespace, selectedBindings, bindingName, useRoleForBindingName } = this;
+    const { selectedRole, bindToNamespace: namespace, selectedBindings } = this;
 
-    const subjects = selectedBindings.map((item: KubeObject | IRoleBindingSubject) => {
+    const subjects = selectedBindings.map((item: KubeObject | RoleBindingSubject) => {
       if (item instanceof KubeObject) {
         return {
           name: item.getName(),
@@ -130,24 +128,21 @@ export class AddRoleBindingDialog extends React.Component<Props> {
     });
 
     try {
-      let roleBinding: RoleBinding;
+      const roleBinding = await (
+        this.isEditing
+          ? roleBindingsStore.updateSubjects({
+            roleBinding: this.roleBinding,
+            addSubjects: subjects,
+          })
+          : roleBindingsStore.create({ name: selectedRole.getName(), namespace }, {
+            subjects,
+            roleRef: {
+              name: selectedRole.getName(),
+              kind: selectedRole.kind,
+            }
+          })
+      );
 
-      if (this.isEditing) {
-        roleBinding = await roleBindingsStore.updateSubjects({
-          roleBinding: this.roleBinding,
-          addSubjects: subjects,
-        });
-      } else {
-        const name = useRoleForBindingName ? selectedRole.getName() : bindingName;
-
-        roleBinding = await roleBindingsStore.create({ name, namespace }, {
-          subjects,
-          roleRef: {
-            name: selectedRole.getName(),
-            kind: selectedRole.kind,
-          }
-        });
-      }
       showDetails(roleBinding.selfLink);
       this.close();
     } catch (err) {
@@ -156,22 +151,12 @@ export class AddRoleBindingDialog extends React.Component<Props> {
   };
 
   @computed get roleOptions(): BindingSelectOption[] {
-    let roles = rolesStore.items as Role[];
-
-    if (this.bindContext) {
-      // show only cluster-roles or roles for selected context namespace
-      roles = roles.filter(role => !role.getNs() || role.getNs() === this.bindContext);
-    }
-
-    return roles.map(role => {
-      const name = role.getName();
-      const namespace = role.getNs();
-
-      return {
+    return rolesStore.items
+      .filter(role => role.getNs() === this.bindToNamespace)
+      .map(role => ({
         value: role.getId(),
-        label: name + (namespace ? ` (${namespace})` : "")
-      };
-    });
+        label: `${role.getName()} (${role.getNs()})`,
+      }));
   }
 
   @computed get serviceAccountOptions(): BindingSelectOption[] {
@@ -194,10 +179,9 @@ export class AddRoleBindingDialog extends React.Component<Props> {
       <>
         <SubTitle title="Context"/>
         <NamespaceSelect
-          showClusterOption
           themeName="light"
           isDisabled={this.isEditing}
-          value={this.bindContext}
+          value={this.bindToNamespace}
           onChange={({ value }) => this.onBindContextChange(value)}
         />
 
@@ -211,7 +195,7 @@ export class AddRoleBindingDialog extends React.Component<Props> {
           value={this.selectedRoleId}
           onChange={({ value }) => this.selectedRoleId = value}
         />
-        {
+        {/* {
           !this.isEditing && (
             <>
               <Checkbox
@@ -233,7 +217,7 @@ export class AddRoleBindingDialog extends React.Component<Props> {
               }
             </>
           )
-        }
+        } */}
 
         <SubTitle title="Binding targets"/>
         <Select
