@@ -20,13 +20,14 @@
  */
 
 import React from "react";
-import { autobind, cssNames } from "../../utils";
+
+import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
+import { apiManager } from "../../api/api-manager";
 import { KubeObject } from "../../api/kube-object";
+import { autobind, cssNames } from "../../utils";
 import { editResourceTab } from "../dock/edit-resource.store";
 import { MenuActions, MenuActionsProps } from "../menu/menu-actions";
 import { hideDetails } from "./kube-object-details";
-import { apiManager } from "../../api/api-manager";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
 
 export interface KubeObjectMenuProps<T> extends MenuActionsProps {
   object: T | null | undefined;
@@ -109,6 +110,7 @@ export class KubeObjectMenu<T extends KubeObject> extends React.Component<KubeOb
         updateAction={isEditable ? update : undefined}
         removeAction={isRemovable ? remove : undefined}
         removeConfirmationMessage={renderRemoveMessage}
+        toolbar={toolbar}
         {...menuProps}
       >
         {this.getMenuItems(object, toolbar)}
