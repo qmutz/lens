@@ -28,8 +28,8 @@ import { app, remote } from "electron";
 import { observable, reaction, when } from "mobx";
 import fse from "fs-extra";
 import { StorageHelper } from "./storageHelper";
-import { getHostedClusterId } from "../../common/cluster-store";
 import logger from "../../main/logger";
+import { getHostedClusterId } from "../../common/cluster-helpers";
 
 let initialized = false;
 const loaded = observable.box(false);

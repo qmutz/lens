@@ -23,8 +23,8 @@
 // https://www.electronjs.org/docs/api/ipc-main
 // https://www.electronjs.org/docs/api/ipc-renderer
 import Electron, { ipcMain, ipcRenderer, remote } from "electron";
+import { ClusterFrameInfo, ClusterFrameManager } from "../../main/cluster-frame-manager";
 
-import { ClusterFrameInfo, ClusterManager } from "../../main/cluster-manager";
 import logger from "../../main/logger";
 import { Disposer, disposer } from "../utils";
 
@@ -39,7 +39,7 @@ export async function requestMain(channel: string, ...args: any[]) {
 }
 
 function getSubFrames(): ClusterFrameInfo[] {
-  return ClusterManager.getInstance().getAllFrameInfo();
+  return ClusterFrameManager.getInstance().getAllFrameInfo();
 }
 
 export async function broadcastMessage(channel: string, ...args: any[]) {

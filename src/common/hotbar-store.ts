@@ -23,7 +23,7 @@ import { action, comparer, observable, toJS } from "mobx";
 import { BaseStore } from "./base-store";
 import migrations from "../migrations/hotbar-store";
 import * as uuid from "uuid";
-import { CatalogEntityItem } from "../renderer/components/+catalog/catalog-entity.store";
+import type { CatalogEntityItem } from "../renderer/components/+catalog/catalog-entity.store";
 import isNull from "lodash/isNull";
 
 export interface HotbarItem {

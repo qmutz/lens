@@ -19,6 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export { Singleton, openExternal, disposer, Disposer, ExtendableDisposer } from "../../common/utils";
+export { Singleton, openExternal, disposer } from "../../common/utils";
 export { prevDefault, stopPropagation } from "../../renderer/utils/prevDefault";
 export { cssNames } from "../../renderer/utils/cssNames";
+
+export type { Disposer, ExtendableDisposer } from "../../common/utils";

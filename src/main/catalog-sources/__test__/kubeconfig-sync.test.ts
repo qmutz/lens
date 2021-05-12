@@ -79,7 +79,7 @@ describe("kubeconfig-sync.source tests", () => {
   describe("computeDiff", () => {
     it("should leave an empty source empty if there are no entries", () => {
       const contents = "";
-      const rootSource = new ObservableMap<string, [Cluster, KubernetesCluster]>();
+      const rootSource = new ObservableMap<string, KubernetesCluster>();
       const filePath = "/bar";
 
       computeDiff(contents, rootSource, filePath);
@@ -114,7 +114,7 @@ describe("kubeconfig-sync.source tests", () => {
         }],
         currentContext: "foobar"
       });
-      const rootSource = new ObservableMap<string, [Cluster, KubernetesCluster]>();
+      const rootSource = new ObservableMap<string, KubernetesCluster>();
       const filePath = "/bar";
 
       fs.writeFileSync(filePath, contents);
@@ -157,7 +157,7 @@ describe("kubeconfig-sync.source tests", () => {
         }],
         currentContext: "foobar"
       });
-      const rootSource = new ObservableMap<string, [Cluster, KubernetesCluster]>();
+      const rootSource = new ObservableMap<string, KubernetesCluster>();
       const filePath = "/bar";
 
       fs.writeFileSync(filePath, contents);
@@ -211,7 +211,7 @@ describe("kubeconfig-sync.source tests", () => {
         }],
         currentContext: "foobar"
       });
-      const rootSource = new ObservableMap<string, [Cluster, KubernetesCluster]>();
+      const rootSource = new ObservableMap<string, KubernetesCluster>();
       const filePath = "/bar";
 
       fs.writeFileSync(filePath, contents);

@@ -26,7 +26,7 @@ import plimit from "p-limit";
 
 import { broadcastMessage, ClusterListNamespaceForbiddenChannel } from "../common/ipc";
 import { loadConfig, validateKubeConfig } from "../common/kube-helpers";
-import { apiResources, KubeApiResource } from "../common/rbac";
+import { apiResourceRecord, apiResources } from "../common/rbac";
 import { detectorRegistry } from "./cluster-detectors/detector-registry";
 import { VersionDetector } from "./cluster-detectors/version-detector";
 import { ContextHandler } from "./context-handler";
@@ -34,7 +34,8 @@ import { KubeconfigManager } from "./kubeconfig-manager";
 import { Kubectl } from "./kubectl";
 import logger from "./logger";
 
-import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, UpdateClusterModel } from "../common/cluster-store";
+import type { KubeApiResource, KubeResource } from "../common/rbac";
+import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, UpdateClusterModel } from "../common/cluster-types";
 
 export enum ClusterStatus {
   AccessGranted = 2,
@@ -704,17 +705,25 @@ export class Cluster implements ClusterModel, ClusterState {
     }
   }
 
-  isAllowedResource(kind: string): boolean {
-    if ((kind as KubeResource) in apiResourceRecord) {
-      return this.allowedResources.includes(kind);
-    }
+  /**
+   * Checks if all asked about kinds are in the set of allowed resources
+   * @param kinds A list of kinds of resources
+   * @returns true if ALL kinds are allowed
+   */
+  isAllowedResource(...kinds: string[]): boolean {
+    return kinds.every(kind => {
 
-    const apiResource = apiResources.find(resource => resource.kind === kind);
+      if ((kind as KubeResource) in apiResourceRecord) {
+        return this.allowedResources.includes(kind);
+      }
 
-    if (apiResource) {
-      return this.allowedResources.includes(apiResource.apiName);
-    }
+      const apiResource = apiResources.find(resource => resource.kind === kind);
 
-    return true; // allowed by default for other resources
+      if (apiResource) {
+        return this.allowedResources.includes(apiResource.apiName);
+      }
+
+      return true; // allowed by default for other resources
+    });
   }
 }

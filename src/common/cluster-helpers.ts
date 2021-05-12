@@ -19,26 +19,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { RequestPromiseOptions } from "request-promise-native";
-import type { Cluster } from "../cluster";
-import { k8sRequest } from "../k8s-request";
+import type { ClusterId } from "./cluster-types";
 
-export type ClusterDetectionResult = {
-  value: string | number | boolean
-  accuracy: number
-};
+export function getClusterIdFromHost(host: string): ClusterId | undefined {
+  // e.g host == "%clusterId.localhost:45345"
+  const subDomains = host.split(":")[0].split(".");
 
-export class BaseClusterDetector {
-  key: string;
+  return subDomains.slice(-2, -1)[0]; // ClusterId or undefined
+}
 
-  constructor(public cluster: Cluster) {
-  }
+export function getClusterFrameUrl(clusterId: ClusterId) {
+  return `//${clusterId}.${location.host}`;
+}
 
-  detect(): Promise<ClusterDetectionResult> {
-    return null;
-  }
-
-  protected async k8sRequest<T = any>(path: string, options: RequestPromiseOptions = {}): Promise<T> {
-    return k8sRequest(this.cluster, path, options);
-  }
+export function getHostedClusterId() {
+  return getClusterIdFromHost(location.host);
 }

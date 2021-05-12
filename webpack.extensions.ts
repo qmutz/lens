@@ -113,6 +113,7 @@ export default function generateExtensionTypes(): webpack.Configuration {
     },
     plugins: [
       new CircularDependencyPlugin({
+        failOnError: true,
         exclude: /node_modules/,
       }),
       // In ts-loader's README they said to output a built .d.ts file,

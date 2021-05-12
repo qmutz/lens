@@ -23,7 +23,6 @@
 
 import "../common/system-ca";
 import "../common/prometheus-providers";
-import "./initilizers";
 import * as Mobx from "mobx";
 import * as LensExtensions from "../extensions/core-api";
 import { app, autoUpdater, ipcMain, dialog, powerMonitor } from "electron";

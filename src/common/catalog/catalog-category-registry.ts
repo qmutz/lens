@@ -21,7 +21,7 @@
 import { action, computed, observable, when } from "mobx";
 
 import { navigate } from "../../renderer/navigation";
-import { Rest } from "../ipc";
+import type { Rest } from "../ipc";
 import { Disposer, disposer, ExtendedMap, Singleton, StrictMap } from "../utils";
 import {
   AddMenuOpenHandler,

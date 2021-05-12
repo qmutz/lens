@@ -28,7 +28,7 @@ export class ResourceApplierApiRoute {
     const { response, cluster, payload } = request;
 
     try {
-      const resource = await new ResourceApplier(cluster).apply(payload);
+      const resource = await ResourceApplier.new(cluster).apply(payload);
 
       respondJson(response, [resource], 200);
     } catch (error) {

@@ -19,30 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ipcMain } from "electron";
-import { action, computed, observable, reaction } from "mobx";
+import { action, observable, reaction } from "mobx";
 
 import { CatalogEntityRegistry } from "../common/catalog";
-import { KubernetesCluster, KubernetesClusterStatus } from "../common/catalog-entities/kubernetes-cluster";
+import { getClusterIdFromHost } from "../common/cluster-helpers";
 import * as ClusterChannels from "../common/cluster-ipc";
-import { ClusterId, getClusterIdFromHost } from "../common/cluster-store";
 import { appEventBus } from "../common/event-bus";
-import { iter, noop, Singleton } from "../common/utils";
+import { noop, Singleton } from "../common/utils";
 import { apiKubePrefix } from "../common/vars";
 import { Cluster } from "./cluster";
 import logger from "./logger";
 import { ResourceApplier } from "./resource-applier";
 
-
 import type http from "http";
-
-export type ClusterFrameInfo = {
-  frameId: number;
-  processId: number
-};
+import type { ClusterId } from "../common/cluster-types";
+import type { KubernetesCluster, KubernetesClusterStatus } from "../common/catalog-entities/kubernetes-cluster";
+import { ClusterFrameManager } from "./cluster-frame-manager";
 
 export class ClusterManager extends Singleton {
   protected clusterInstances = observable.map<ClusterId, Cluster>();
-  protected clusterFrameMap = observable.map<string, ClusterFrameInfo>();
 
   constructor() {
     super();
@@ -54,17 +49,9 @@ export class ClusterManager extends Singleton {
     ipcMain.on("network:offline", this.onNetworkOffline);
     ipcMain.on("network:online", this.onNetworkOnline);
     ipcMain.handle(ClusterChannels.activate, this.handleClusterActivate);
-    ipcMain.handle(ClusterChannels.setFrameId, this.handleClusteSetFrameId);
     ipcMain.handle(ClusterChannels.refresh, this.handleClusterRefresh);
     ipcMain.handle(ClusterChannels.disconnect, this.handleClusterDisconnect);
     ipcMain.handle(ClusterChannels.kubectlApplyAll, this.handleKubectlApplyAll);
-  }
-
-  /**
-   * Is a computed mapping between `frameId`'s and their associated `ClusterFrameInfo`
-   */
-  @computed get frameMapById(): Map<number, number> {
-    return new Map(iter.map(this.clusterFrameMap.values(), info => [info.frameId, info.processId]));
   }
 
   @action syncClustersFromCatalog(entities: KubernetesCluster[]) {
@@ -135,7 +122,7 @@ export class ClusterManager extends Singleton {
       return;
     }
 
-    this.clusterFrameMap.set(cluster.id, { frameId, processId });
+    ClusterFrameManager.getInstance().setFrameInfo(cluster.id, { frameId, processId });
 
     return cluster.pushState();
   };
@@ -159,18 +146,6 @@ export class ClusterManager extends Singleton {
 
     return ResourceApplier.new(cluster).kubectlApplyAll(resources);
   };
-
-  getFrameInfoByClusterId(clusterId: ClusterId): ClusterFrameInfo {
-    return this.clusterFrameMap.get(clusterId);
-  }
-
-  getFrameProcessIdById(frameId: number): number {
-    return this.frameMapById.get(frameId);
-  }
-
-  getAllFrameInfo(): ClusterFrameInfo[] {
-    return Array.from(this.clusterFrameMap.values());
-  }
 
   stop() {
     for (const cluster of this.clusterInstances.values()) {

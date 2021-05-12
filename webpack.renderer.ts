@@ -42,7 +42,10 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
   return {
     context: __dirname,
     target: "electron-renderer",
-    devtool: "source-map", // todo: optimize in dev-mode with webpack.SourceMapDevToolPlugin
+    name: "lens-app",
+    mode: isProduction ? "production" : "development",
+    devtool: "cheap-source-map",
+    // cache: isDevelopment,
     devServer: {
       contentBase: buildDir,
       port: webpackDevServerPort,
@@ -52,9 +55,6 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
       disableHostCheck: true,
       headers: { "Access-Control-Allow-Origin": "*" },
     },
-    name: "lens-app",
-    mode: isProduction ? "production" : "development",
-    cache: isDevelopment,
     entry: {
       [appName]: path.resolve(rendererDir, "bootstrap.tsx"),
     },
@@ -179,6 +179,7 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
       isDevelopment && new ReactRefreshWebpackPlugin(),
 
       new CircularDependencyPlugin({
+        failOnError: true,
         exclude: /node_modules/,
       }),
     ].filter(Boolean),

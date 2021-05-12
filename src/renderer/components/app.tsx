@@ -18,17 +18,18 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { webFrame } from "electron";
 import { observable } from "mobx";
 import { disposeOnUnmount, observer } from "mobx-react";
 import React from "react";
 import { Redirect, Route, Router, Switch } from "react-router";
 import whatInput from "what-input";
+import { getHostedClusterId } from "../../common/cluster-helpers";
 
 import { setFrameId } from "../../common/cluster-ipc";
-import { getHostedCluster, getHostedClusterId } from "../../common/cluster-store";
+import { getHostedCluster } from "../../common/cluster-store";
 import { appEventBus } from "../../common/event-bus";
 import { requestMain } from "../../common/ipc";
-import { isAllowedResource } from "../../common/rbac";
 import { ExtensionLoader } from "../../extensions/extension-loader";
 import { ClusterPageMenuRegistration, clusterPageMenuRegistry } from "../../extensions/registries";
 import { clusterPageRegistry, getExtensionPageUrl } from "../../extensions/registries/page-registry";
@@ -113,7 +114,7 @@ export class App extends React.Component {
     ]);
   }
 
-  @observable startUrl = isAllowedResource(["events", "nodes", "pods"]) ? clusterURL() : workloadsURL();
+  @observable startUrl = getHostedCluster().isAllowedResource("events", "nodes", "pods") ? clusterURL() : workloadsURL();
 
   getTabLayoutRoutes(menuItem: ClusterPageMenuRegistration) {
     const routes: TabLayoutRoute[] = [];
@@ -152,6 +153,8 @@ export class App extends React.Component {
           return <Route key={`extension-tab-layout-route-${index}`} path={page.url} component={page.components.Page}/>;
         }
       }
+
+      return undefined;
     });
   }
 
@@ -162,6 +165,8 @@ export class App extends React.Component {
       if (!menu) {
         return <Route key={`extension-route-${index}`} path={page.url} component={page.components.Page}/>;
       }
+
+      return undefined;
     });
   }
 

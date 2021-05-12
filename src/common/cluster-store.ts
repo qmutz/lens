@@ -30,87 +30,17 @@ import logger from "../main/logger";
 import { appEventBus } from "./event-bus";
 import { dumpConfigYaml } from "./kube-helpers";
 import { saveToAppFiles } from "./utils/saveToAppFiles";
-import { KubeConfig } from "@kubernetes/client-node";
 import { handleRequest, requestMain, subscribeToBroadcast, unsubscribeAllFromBroadcast } from "./ipc";
-import { ResourceType } from "../renderer/components/cluster-settings/components/cluster-metrics-setting";
 import { disposer, noop } from "./utils";
+import { getHostedClusterId } from "./cluster-helpers";
 
-export interface ClusterIconUpload {
-  clusterId: string;
-  name: string;
-  path: string;
-}
-
-export interface ClusterMetadata {
-  [key: string]: string | number | boolean | object;
-}
-
-export type ClusterPrometheusMetadata = {
-  success?: boolean;
-  provider?: string;
-  autoDetected?: boolean;
-};
+import type { KubeConfig } from "@kubernetes/client-node";
+import type { ClusterId, ClusterModel } from "./cluster-types";
+import type { ResourceType } from "../renderer/components/cluster-settings/components/cluster-metrics-setting";
 
 export interface ClusterStoreModel {
   activeCluster?: ClusterId; // last opened cluster
   clusters?: ClusterModel[];
-}
-
-export type ClusterId = string;
-
-export interface UpdateClusterModel extends Omit<ClusterModel, "id"> {
-  id?: ClusterId;
-}
-
-export interface ClusterModel {
-  /** Unique id for a cluster */
-  id: ClusterId;
-
-  /** Path to cluster kubeconfig */
-  kubeConfigPath: string;
-
-  /**
-   * Workspace id
-   *
-   * @deprecated
-  */
-  workspace?: string;
-
-  /** User context in kubeconfig  */
-  contextName?: string;
-
-  /** Preferences */
-  preferences?: ClusterPreferences;
-
-  /** Metadata */
-  metadata?: ClusterMetadata;
-
-  /** List of accessible namespaces */
-  accessibleNamespaces?: string[];
-
-  /** @deprecated */
-  kubeConfig?: string; // yaml
-}
-
-export interface ClusterPreferences extends ClusterPrometheusPreferences {
-  terminalCWD?: string;
-  clusterName?: string;
-  iconOrder?: number;
-  icon?: string;
-  httpsProxy?: string;
-  hiddenMetrics?: string[];
-}
-
-export interface ClusterPrometheusPreferences {
-  prometheus?: {
-    namespace: string;
-    service: string;
-    port: number;
-    prefix: string;
-  };
-  prometheusProvider?: {
-    type: string;
-  };
 }
 
 export class ClusterStore extends BaseStore<ClusterStoreModel> {
@@ -339,21 +269,6 @@ export class ClusterStore extends BaseStore<ClusterStoreModel> {
       recurseEverything: true
     });
   }
-}
-
-export function getClusterIdFromHost(host: string): ClusterId | undefined {
-  // e.g host == "%clusterId.localhost:45345"
-  const subDomains = host.split(":")[0].split(".");
-
-  return subDomains.slice(-2, -1)[0]; // ClusterId or undefined
-}
-
-export function getClusterFrameUrl(clusterId: ClusterId) {
-  return `//${clusterId}.${location.host}`;
-}
-
-export function getHostedClusterId() {
-  return getClusterIdFromHost(location.host);
 }
 
 export function getHostedCluster(): Cluster {
