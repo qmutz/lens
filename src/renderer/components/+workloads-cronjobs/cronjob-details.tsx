@@ -28,12 +28,11 @@ import { DrawerItem, DrawerTitle } from "../drawer";
 import { Badge } from "../badge/badge";
 import { jobStore } from "../+workloads-jobs/job.store";
 import { Link } from "react-router-dom";
-import { KubeEventDetails } from "../+events/kube-event-details";
 import { cronJobStore } from "./cronjob.store";
-import { getDetailsUrl, KubeObjectDetailsProps } from "../kube-object";
-import { CronJob, Job } from "../../api/endpoints";
+import type { KubeObjectDetailsProps } from "../kube-object";
+import type { CronJob, Job } from "../../api/endpoints";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
+import { getDetailsUrl } from "../kube-object/utils";
 
 interface Props extends KubeObjectDetailsProps<CronJob> {
 }
@@ -105,19 +104,3 @@ export class CronJobDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "CronJob",
-  apiVersions: ["batch/v1beta1"],
-  components: {
-    Details: (props) => <CronJobDetails {...props} />
-  }
-});
-kubeObjectDetailRegistry.add({
-  kind: "CronJob",
-  apiVersions: ["batch/v1beta1"],
-  priority: 5,
-  components: {
-    Details: (props) => <KubeEventDetails {...props} />
-  }
-});

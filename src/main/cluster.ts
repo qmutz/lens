@@ -27,47 +27,16 @@ import plimit from "p-limit";
 import { broadcastMessage, ClusterListNamespaceForbiddenChannel } from "../common/ipc";
 import { loadConfig, validateKubeConfig } from "../common/kube-helpers";
 import { apiResourceRecord, apiResources } from "../common/rbac";
-import { detectorRegistry } from "./cluster-detectors/detector-registry";
+import { DetectorRegistry } from "./cluster-detectors/detector-registry";
 import { VersionDetector } from "./cluster-detectors/version-detector";
 import { ContextHandler } from "./context-handler";
 import { KubeconfigManager } from "./kubeconfig-manager";
 import { Kubectl } from "./kubectl";
 import logger from "./logger";
+import { ClusterStatus } from "../common/cluster-types";
 
 import type { KubeApiResource, KubeResource } from "../common/rbac";
-import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, UpdateClusterModel } from "../common/cluster-types";
-
-export enum ClusterStatus {
-  AccessGranted = 2,
-  AccessDenied = 1,
-  Offline = 0
-}
-
-export enum ClusterMetadataKey {
-  VERSION = "version",
-  CLUSTER_ID = "id",
-  DISTRIBUTION = "distribution",
-  NODES_COUNT = "nodes",
-  LAST_SEEN = "lastSeen",
-  PROMETHEUS = "prometheus"
-}
-
-export type ClusterRefreshOptions = {
-  refreshMetadata?: boolean
-};
-
-export interface ClusterState {
-  apiUrl: string;
-  online: boolean;
-  disconnected: boolean;
-  accessible: boolean;
-  ready: boolean;
-  failureReason: string;
-  isAdmin: boolean;
-  allowedNamespaces: string[]
-  allowedResources: string[]
-  isGlobalWatchEnabled: boolean;
-}
+import type { ClusterId, ClusterMetadata, ClusterModel, ClusterPreferences, ClusterPrometheusPreferences, ClusterRefreshOptions, ClusterState, UpdateClusterModel } from "../common/cluster-types";
 
 /**
  * Cluster
@@ -424,7 +393,7 @@ export class Cluster implements ClusterModel, ClusterState {
   @action
   async refreshMetadata() {
     logger.info(`[CLUSTER]: refreshMetadata`, this.getMeta());
-    const metadata = await detectorRegistry.detectForCluster(this);
+    const metadata = await DetectorRegistry.getInstance().detectForCluster(this);
     const existingMetadata = this.metadata;
 
     this.metadata = Object.assign(existingMetadata, metadata);
@@ -705,25 +674,35 @@ export class Cluster implements ClusterModel, ClusterState {
     }
   }
 
+  private isAllowedResource(kind: string | KubeResource): boolean {
+    if (kind in apiResourceRecord) {
+      return this.allowedResources.includes(kind);
+    }
+
+    const apiResource = apiResources.find(resource => resource.kind === kind);
+
+    if (apiResource) {
+      return this.allowedResources.includes(apiResource.apiName);
+    }
+
+    return true; // allowed by default for other resources
+  }
+
   /**
-   * Checks if all asked about kinds are in the set of allowed resources
+   * Checks if all of the asked about kinds are in the set of allowed resources
    * @param kinds A list of kinds of resources
    * @returns true if ALL kinds are allowed
    */
-  isAllowedResource(...kinds: string[]): boolean {
-    return kinds.every(kind => {
+  isAllAllowedResource(...kinds: string[]): boolean {
+    return kinds.every(kind => this.isAllowedResource(kind));
+  }
 
-      if ((kind as KubeResource) in apiResourceRecord) {
-        return this.allowedResources.includes(kind);
-      }
-
-      const apiResource = apiResources.find(resource => resource.kind === kind);
-
-      if (apiResource) {
-        return this.allowedResources.includes(apiResource.apiName);
-      }
-
-      return true; // allowed by default for other resources
-    });
+  /**
+   * Checks if any of the asked about kinds are in the set of allowed resources
+   * @param kinds A list of kinds of resources
+   * @returns true if ALL kinds are allowed, returns true if non provided
+   */
+  isAnyAllowedResource(...kinds: string[]): boolean {
+    return kinds.some(kind => this.isAllowedResource(kind)) || kinds.length === 0;
   }
 }

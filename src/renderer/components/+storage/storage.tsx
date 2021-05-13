@@ -24,51 +24,53 @@ import "./storage.scss";
 import React from "react";
 import { observer } from "mobx-react";
 import { TabLayout, TabLayoutRoute } from "../layout/tab-layout";
-import { PersistentVolumes, volumesRoute, volumesURL } from "../+storage-volumes";
-import { StorageClasses, storageClassesRoute, storageClassesURL } from "../+storage-classes";
-import { PersistentVolumeClaims, volumeClaimsRoute, volumeClaimsURL } from "../+storage-volume-claims";
+import { PersistentVolumes } from "../+storage-volumes";
+import { StorageClasses } from "../+storage-classes";
+import { PersistentVolumeClaims } from "../+storage-volume-claims";
 import { namespaceUrlParam } from "../+namespaces/namespace.store";
-import { isAllowedResource } from "../../../common/rbac";
+import type { Cluster } from "../../../main/cluster";
+import * as routes from "../../../common/routes";
+import { getHostedCluster } from "../../../common/cluster-store";
 
 @observer
 export class Storage extends React.Component {
-  static get tabRoutes() {
-    const tabRoutes: TabLayoutRoute[] = [];
+  static tabRoutes(cluster: Cluster): TabLayoutRoute[]{
+    const tabs: TabLayoutRoute[] = [];
     const query = namespaceUrlParam.toObjectParam();
 
-    if (isAllowedResource("persistentvolumeclaims")) {
-      tabRoutes.push({
+    if (cluster.isAllAllowedResource("persistentvolumeclaims")) {
+      tabs.push({
         title: "Persistent Volume Claims",
         component: PersistentVolumeClaims,
-        url: volumeClaimsURL({ query }),
-        routePath: volumeClaimsRoute.path.toString(),
+        url: routes.volumeClaimsURL({ query }),
+        routePath: routes.volumeClaimsRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("persistentvolumes")) {
-      tabRoutes.push({
+    if (cluster.isAllAllowedResource("persistentvolumes")) {
+      tabs.push({
         title: "Persistent Volumes",
         component: PersistentVolumes,
-        url: volumesURL(),
-        routePath: volumesRoute.path.toString(),
+        url: routes.volumesURL(),
+        routePath: routes.volumesRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("storageclasses")) {
-      tabRoutes.push({
+    if (cluster.isAllAllowedResource("storageclasses")) {
+      tabs.push({
         title: "Storage Classes",
         component: StorageClasses,
-        url: storageClassesURL(),
-        routePath: storageClassesRoute.path.toString(),
+        url: routes.storageClassesURL(),
+        routePath: routes.storageClassesRoute.path.toString(),
       });
     }
 
-    return tabRoutes;
+    return tabs;
   }
 
   render() {
     return (
-      <TabLayout className="Storage" tabs={Storage.tabRoutes}/>
+      <TabLayout className="Storage" tabs={Storage.tabRoutes(getHostedCluster())}/>
     );
   }
 }

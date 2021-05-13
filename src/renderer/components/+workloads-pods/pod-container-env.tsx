@@ -23,7 +23,7 @@ import "./pod-container-env.scss";
 
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { IPodContainer, Secret } from "../../api/endpoints";
+import type { IPodContainer, Secret } from "../../api/endpoints";
 import { DrawerItem } from "../drawer";
 import { autorun } from "mobx";
 import { secretsStore } from "../+config-secrets/secrets.store";
@@ -116,9 +116,13 @@ export const ContainerEnvironment = observer((props: Props) => {
     const envVars = envFrom.map(vars => {
       if (vars.configMapRef?.name) {
         return renderEnvFromConfigMap(vars.configMapRef.name);
-      } else if (vars.secretRef?.name ) {
+      }
+
+      if (vars.secretRef?.name ) {
         return renderEnvFromSecret(vars.secretRef.name);
       }
+
+      return undefined;
     });
 
     return _.flatten(envVars);
@@ -127,7 +131,9 @@ export const ContainerEnvironment = observer((props: Props) => {
   const renderEnvFromConfigMap = (configMapName: string) => {
     const configMap = configMapsStore.getByName(configMapName, namespace);
 
-    if (!configMap) return;
+    if (!configMap) {
+      return null;
+    }
 
     return Object.entries(configMap.data).map(([name, value]) => (
       <div className="variable" key={name}>
@@ -139,7 +145,9 @@ export const ContainerEnvironment = observer((props: Props) => {
   const renderEnvFromSecret = (secretName: string) => {
     const secret = secretsStore.getByName(secretName, namespace);
 
-    if (!secret) return;
+    if (!secret) {
+      return null;
+    }
 
     return Object.keys(secret.data).map(key => {
       const secretKeyRef = {

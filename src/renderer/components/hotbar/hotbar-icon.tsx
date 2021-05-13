@@ -28,7 +28,7 @@ import { observer } from "mobx-react";
 import randomColor from "randomcolor";
 import React, { DOMAttributes } from "react";
 
-import { CatalogEntity, ContextMenu } from "../../../common/catalog";
+import type { CatalogEntity, ContextMenu } from "../../../common/catalog";
 import { HotbarStore } from "../../../common/hotbar-store";
 import { CatalogCategoryRegistry } from "../../api/catalog-category-registry";
 import { cssNames, IClassName, iter } from "../../utils";

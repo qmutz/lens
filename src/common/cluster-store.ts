@@ -24,7 +24,7 @@ import { app, ipcMain, ipcRenderer, remote, webFrame } from "electron";
 import { unlink } from "fs-extra";
 import { action, comparer, computed, observable, reaction, toJS } from "mobx";
 import { BaseStore } from "./base-store";
-import { Cluster, ClusterState } from "../main/cluster";
+import { Cluster } from "../main/cluster";
 import migrations from "../migrations/cluster-store";
 import logger from "../main/logger";
 import { appEventBus } from "./event-bus";
@@ -35,7 +35,7 @@ import { disposer, noop } from "./utils";
 import { getHostedClusterId } from "./cluster-helpers";
 
 import type { KubeConfig } from "@kubernetes/client-node";
-import type { ClusterId, ClusterModel } from "./cluster-types";
+import type { ClusterId, ClusterModel, ClusterState } from "./cluster-types";
 import type { ResourceType } from "../renderer/components/cluster-settings/components/cluster-metrics-setting";
 
 export interface ClusterStoreModel {

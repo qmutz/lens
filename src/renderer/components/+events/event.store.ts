@@ -24,10 +24,9 @@ import compact from "lodash/compact";
 import { KubeObjectStore } from "../../kube-object.store";
 import { autobind } from "../../utils";
 import { eventApi, KubeEvent } from "../../api/endpoints/events.api";
-import { KubeObject } from "../../api/kube-object";
+import type { KubeObject } from "../../api/kube-object";
 import { Pod } from "../../api/endpoints/pods.api";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class EventStore extends KubeObjectStore<KubeEvent> {
@@ -65,7 +64,7 @@ export class EventStore extends KubeObjectStore<KubeEvent> {
       if (kind == Pod.kind) {  // Wipe out running pods
         const pod = podsStore.items.find(pod => pod.getId() == uid);
 
-        if (!pod || (!pod.hasIssues() && pod.spec.priority < 500000)) return;
+        if (!pod || (!pod.hasIssues() && pod.spec.priority < 500000)) return null;
       }
 
       return recent;
@@ -80,4 +79,3 @@ export class EventStore extends KubeObjectStore<KubeEvent> {
 }
 
 export const eventStore = new EventStore();
-apiManager.registerStore(eventStore);

@@ -20,8 +20,8 @@
  */
 
 import { PrometheusLens } from "./lens";
-import { CoreV1Api } from "@kubernetes/client-node";
-import { PrometheusService } from "./provider-registry";
+import type { CoreV1Api } from "@kubernetes/client-node";
+import type { PrometheusService } from "./provider-registry";
 import logger from "../logger";
 
 export class PrometheusHelm extends PrometheusLens {
@@ -29,14 +29,14 @@ export class PrometheusHelm extends PrometheusLens {
   name = "Helm";
   rateAccuracy = "5m";
 
-  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService> {
+  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService | null> {
     const labelSelector = "app=prometheus,component=server,heritage=Helm";
 
     try {
       const serviceList = await client.listServiceForAllNamespaces(false, "", null, labelSelector);
       const service = serviceList.body.items[0];
 
-      if (!service) return;
+      if (!service) return null;
 
       return {
         id: this.id,
@@ -47,7 +47,7 @@ export class PrometheusHelm extends PrometheusLens {
     } catch(error) {
       logger.warn(`PrometheusHelm: failed to list services: ${error.toString()}`);
 
-      return;
+      return null;
     }
   }
 }

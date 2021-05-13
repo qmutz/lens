@@ -23,21 +23,20 @@ import "./cronjobs.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { CronJob, cronJobApi } from "../../api/endpoints/cron-job.api";
 import { MenuItem } from "../menu";
 import { Icon } from "../icon";
 import { cronJobStore } from "./cronjob.store";
 import { jobStore } from "../+workloads-jobs/job.store";
 import { eventStore } from "../+events/event.store";
-import { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
-import { ICronJobsRouteParams } from "../+workloads";
+import type { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
 import { KubeObjectListLayout } from "../kube-object";
 import { CronJobTriggerDialog } from "./cronjob-trigger-dialog";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
 import { ConfirmDialog } from "../confirm-dialog/confirm-dialog";
-import { Notifications } from "../notifications/notifications";
+import { Notifications } from "../notifications";
+import type { ICronJobsRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",
@@ -152,11 +151,3 @@ export function CronJobMenu(props: KubeObjectMenuProps<CronJob>) {
     </>
   );
 }
-
-kubeObjectMenuRegistry.add({
-  kind: "CronJob",
-  apiVersions: ["batch/v1beta1"],
-  components: {
-    MenuItem: CronJobMenu
-  }
-});

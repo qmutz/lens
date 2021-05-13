@@ -19,20 +19,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, MenuItem, MenuItemConstructorOptions, webContents, shell } from "electron";
+import * as electron from "electron";
 import { autorun } from "mobx";
-import { WindowManager } from "./window-manager";
+import type { WindowManager } from "./window-manager";
 import { appName, isMac, isWindows, isTestEnv, docsUrl, supportUrl, productName } from "../common/vars";
-import { addClusterURL } from "../renderer/components/+add-cluster/add-cluster.route";
-import { preferencesURL } from "../renderer/components/+preferences/preferences.route";
-import { welcomeURL } from "../renderer/components/+welcome/welcome.route";
-import { extensionsURL } from "../renderer/components/+extensions/extensions.route";
-import { catalogURL } from "../renderer/components/+catalog/catalog.route";
-import { menuRegistry } from "../extensions/registries/menu-registry";
+import { addClusterURL } from "../common/routes/add-cluster";
+import { catalogURL } from "../common/routes/catalog";
+import { MenuRegistry } from "../extensions/registries/menu-registry";
 import logger from "./logger";
 import { exitApp } from "./exit-app";
 import { broadcastMessage } from "../common/ipc";
 import * as packageJson from "../../package.json";
+import { preferencesURL, extensionsURL, welcomeURL } from "../common/routes";
 
 export type MenuTopId = "mac" | "file" | "edit" | "view" | "help";
 
@@ -42,16 +40,16 @@ export function initMenu(windowManager: WindowManager) {
   });
 }
 
-export function showAbout(browserWindow: BrowserWindow) {
+export function showAbout(browserWindow: electron.BrowserWindow) {
   const appInfo = [
-    `${appName}: ${app.getVersion()}`,
+    `${appName}: ${electron.app.getVersion()}`,
     `Electron: ${process.versions.electron}`,
     `Chrome: ${process.versions.chrome}`,
     `Node: ${process.versions.node}`,
     packageJson.copyright,
   ];
 
-  dialog.showMessageBoxSync(browserWindow, {
+  electron.dialog.showMessageBoxSync(browserWindow, {
     title: `${isWindows ? " ".repeat(2) : ""}${appName}`,
     type: "info",
     buttons: ["Close"],
@@ -61,7 +59,7 @@ export function showAbout(browserWindow: BrowserWindow) {
 }
 
 export function buildMenu(windowManager: WindowManager) {
-  function ignoreOnMac(menuItems: MenuItemConstructorOptions[]) {
+  function ignoreOnMac(menuItems: electron.MenuItemConstructorOptions[]) {
     if (isMac) return [];
 
     return menuItems;
@@ -72,12 +70,12 @@ export function buildMenu(windowManager: WindowManager) {
     await windowManager.navigate(url);
   }
 
-  const macAppMenu: MenuItemConstructorOptions = {
-    label: app.getName(),
+  const macAppMenu: electron.MenuItemConstructorOptions = {
+    label: electron.app.getName(),
     submenu: [
       {
         label: `About ${productName}`,
-        click(menuItem: MenuItem, browserWindow: BrowserWindow) {
+        click(menuItem: electron.MenuItem, browserWindow: electron.BrowserWindow) {
           showAbout(browserWindow);
         }
       },
@@ -112,7 +110,7 @@ export function buildMenu(windowManager: WindowManager) {
       }
     ]
   };
-  const fileMenu: MenuItemConstructorOptions = {
+  const fileMenu: electron.MenuItemConstructorOptions = {
     label: "File",
     submenu: [
       {
@@ -156,7 +154,7 @@ export function buildMenu(windowManager: WindowManager) {
       ])
     ]
   };
-  const editMenu: MenuItemConstructorOptions = {
+  const editMenu: electron.MenuItemConstructorOptions = {
     label: "Edit",
     submenu: [
       { role: "undo" },
@@ -170,7 +168,7 @@ export function buildMenu(windowManager: WindowManager) {
       { role: "selectAll" },
     ]
   };
-  const viewMenu: MenuItemConstructorOptions = {
+  const viewMenu: electron.MenuItemConstructorOptions = {
     label: "View",
     submenu: [
       {
@@ -192,14 +190,14 @@ export function buildMenu(windowManager: WindowManager) {
         label: "Back",
         accelerator: "CmdOrCtrl+[",
         click() {
-          webContents.getFocusedWebContents()?.goBack();
+          electron.webContents.getFocusedWebContents()?.goBack();
         }
       },
       {
         label: "Forward",
         accelerator: "CmdOrCtrl+]",
         click() {
-          webContents.getFocusedWebContents()?.goForward();
+          electron.webContents.getFocusedWebContents()?.goForward();
         }
       },
       {
@@ -218,7 +216,7 @@ export function buildMenu(windowManager: WindowManager) {
       { role: "togglefullscreen" }
     ]
   };
-  const helpMenu: MenuItemConstructorOptions = {
+  const helpMenu: electron.MenuItemConstructorOptions = {
     role: "help",
     submenu: [
       {
@@ -230,19 +228,19 @@ export function buildMenu(windowManager: WindowManager) {
       {
         label: "Documentation",
         click: async () => {
-          shell.openExternal(docsUrl);
+          electron.shell.openExternal(docsUrl);
         },
       },
       {
         label: "Support",
         click: async () => {
-          shell.openExternal(supportUrl);
+          electron.shell.openExternal(supportUrl);
         },
       },
       ...ignoreOnMac([
         {
           label: `About ${productName}`,
-          click(menuItem: MenuItem, browserWindow: BrowserWindow) {
+          click(menuItem: electron.MenuItem, browserWindow: electron.BrowserWindow) {
             showAbout(browserWindow);
           }
         }
@@ -250,7 +248,7 @@ export function buildMenu(windowManager: WindowManager) {
     ]
   };
   // Prepare menu items order
-  const appMenu: Record<MenuTopId, MenuItemConstructorOptions> = {
+  const appMenu: Record<MenuTopId, electron.MenuItemConstructorOptions> = {
     mac: macAppMenu,
     file: fileMenu,
     edit: editMenu,
@@ -259,31 +257,31 @@ export function buildMenu(windowManager: WindowManager) {
   };
 
   // Modify menu from extensions-api
-  menuRegistry.getItems().forEach(({ parentId, ...menuItem }) => {
+  for (const { parentId, ...menuItem } of MenuRegistry.getInstance().getItems()) {
     try {
-      const topMenu = appMenu[parentId as MenuTopId].submenu as MenuItemConstructorOptions[];
+      const topMenu = appMenu[parentId as MenuTopId].submenu as electron.MenuItemConstructorOptions[];
 
       topMenu.push(menuItem);
     } catch (err) {
       logger.error(`[MENU]: can't register menu item, parentId=${parentId}`, { menuItem });
     }
-  });
+  }
 
   if (!isMac) {
     delete appMenu.mac;
   }
 
-  const menu = Menu.buildFromTemplate(Object.values(appMenu));
+  const menu = electron.Menu.buildFromTemplate(Object.values(appMenu));
 
-  Menu.setApplicationMenu(menu);
+  electron.Menu.setApplicationMenu(menu);
 
   if (isTestEnv) {
     // this is a workaround for the test environment (spectron) not being able to directly access
     // the application menus (https://github.com/electron-userland/spectron/issues/21)
-    ipcMain.on("test-menu-item-click", (event: IpcMainEvent, ...names: string[]) => {
-      let menu: Menu = Menu.getApplicationMenu();
+    electron.ipcMain.on("test-menu-item-click", (event: electron.IpcMainEvent, ...names: string[]) => {
+      let menu: electron.Menu = electron.Menu.getApplicationMenu();
       const parentLabels: string[] = [];
-      let menuItem: MenuItem;
+      let menuItem: electron.MenuItem;
 
       for (const name of names) {
         parentLabels.push(name);

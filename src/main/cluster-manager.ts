@@ -30,14 +30,15 @@ import { apiKubePrefix } from "../common/vars";
 import { Cluster } from "./cluster";
 import logger from "./logger";
 import { ResourceApplier } from "./resource-applier";
-
-import type http from "http";
-import type { ClusterId } from "../common/cluster-types";
-import type { KubernetesCluster, KubernetesClusterStatus } from "../common/catalog-entities/kubernetes-cluster";
 import { ClusterFrameManager } from "./cluster-frame-manager";
 
+import type { Disposer } from "../common/utils";
+import type http from "http";
+import type { ClusterId } from "../common/cluster-types";
+import type { KubernetesCluster } from "../common/catalog-entities/kubernetes-cluster";
+
 export class ClusterManager extends Singleton {
-  protected clusterInstances = observable.map<ClusterId, Cluster>();
+  protected clusterInstances = observable.map<ClusterId, [Cluster, Disposer]>();
 
   constructor() {
     super();
@@ -56,35 +57,26 @@ export class ClusterManager extends Singleton {
 
   @action syncClustersFromCatalog(entities: KubernetesCluster[]) {
     for (const entity of entities) {
-      const cluster = this.clusterInstances.get(entity.metadata.uid);
+      const instance = this.clusterInstances.get(entity.metadata.uid);
 
-      if (!cluster) {
-        this.clusterInstances.set(entity.metadata.uid, new Cluster({
+      if (!instance) {
+        const cluster = new Cluster({
           id: entity.metadata.uid,
           preferences: {
             clusterName: entity.metadata.name
           },
           kubeConfigPath: entity.spec.kubeconfigPath,
           contextName: entity.spec.kubeconfigContext
-        }));
-
-        // This is done so that the push to renderer is updated as necessary
-        // This also should prevent extensions from trying to set this themselves
-        // in the future.
-        Object.defineProperty(entity, "status", {
-          enumerable: true,
-          configurable: false,
-          writable: false,
-          get(): KubernetesClusterStatus {
-            return {
-              phase: cluster.disconnected ? "disconnected" : "connected",
-              active: !cluster.disconnected,
-            };
-          }
         });
+        const disposer = reaction(() => cluster.getState(), state => {
+          entity.status.phase = state.disconnected ? "disconnected" : "connected";
+          entity.status.active = !state.disconnected;
+        });
+
+        this.clusterInstances.set(entity.metadata.uid, [cluster, disposer]);
       } else {
-        cluster.kubeConfigPath = entity.spec.kubeconfigPath;
-        cluster.contextName = entity.spec.kubeconfigContext;
+        instance[0].kubeConfigPath = entity.spec.kubeconfigPath;
+        instance[0].contextName = entity.spec.kubeconfigContext;
       }
     }
   }
@@ -92,7 +84,7 @@ export class ClusterManager extends Singleton {
   protected onNetworkOffline = () => {
     logger.info("[CLUSTER-MANAGER]: network is offline");
 
-    for (const cluster of this.clusterInstances.values()) {
+    for (const [cluster] of this.clusterInstances.values()) {
       if (!cluster.disconnected) {
         cluster.online = false;
         cluster.accessible = false;
@@ -104,7 +96,7 @@ export class ClusterManager extends Singleton {
   protected onNetworkOnline = () => {
     logger.info("[CLUSTER-MANAGER]: network is online");
 
-    for (const cluster of this.clusterInstances.values()) {
+    for (const [cluster] of this.clusterInstances.values()) {
       if (!cluster.disconnected) {
         cluster.refreshConnectionStatus().catch(noop);
       }
@@ -112,11 +104,11 @@ export class ClusterManager extends Singleton {
   };
 
   protected handleClusterActivate = (event: Electron.IpcMainInvokeEvent, clusterId: ClusterId, force = false) => {
-    return this.clusterInstances.get(clusterId)?.activate(force);
+    return this.clusterInstances.get(clusterId)?.[0]?.activate(force);
   };
 
   protected handleClusteSetFrameId = ({ frameId, processId }: Electron.IpcMainInvokeEvent, clusterId: ClusterId) => {
-    const cluster = this.clusterInstances.get(clusterId);
+    const cluster = this.clusterInstances.get(clusterId)?.[0];
 
     if (!cluster) {
       return;
@@ -128,17 +120,17 @@ export class ClusterManager extends Singleton {
   };
 
   protected handleClusterRefresh = (event: Electron.IpcMainInvokeEvent, clusterId: ClusterId) => {
-    return this.clusterInstances.get(clusterId)?.refresh({ refreshMetadata: true });
+    return this.clusterInstances.get(clusterId)?.[0]?.refresh({ refreshMetadata: true });
   };
 
   protected handleClusterDisconnect = (event: Electron.IpcMainInvokeEvent, clusterId: ClusterId) => {
-    return this.clusterInstances.get(clusterId)?.disconnect();
+    return this.clusterInstances.get(clusterId)?.[0]?.disconnect();
   };
 
   protected handleKubectlApplyAll = (event: Electron.IpcMainInvokeEvent, clusterId: ClusterId, resources: string[]) => {
     appEventBus.emit({ name: "cluster", action: "kubectl-apply-all" });
 
-    const cluster = this.clusterInstances.get(clusterId);
+    const cluster = this.clusterInstances.get(clusterId)?.[0];
 
     if (!cluster) {
       throw new Error(`${clusterId} is not a valid ID`);
@@ -148,7 +140,7 @@ export class ClusterManager extends Singleton {
   };
 
   stop() {
-    for (const cluster of this.clusterInstances.values()) {
+    for (const [cluster] of this.clusterInstances.values()) {
       cluster.disconnect();
     }
   }
@@ -160,18 +152,18 @@ export class ClusterManager extends Singleton {
     if (req.headers.host.startsWith("127.0.0.1")) {
       const clusterId = req.url.split("/")[1];
 
-      cluster = this.clusterInstances.get(clusterId);
+      cluster = this.clusterInstances.get(clusterId)?.[0];
 
       if (cluster) {
         // we need to swap path prefix so that request is proxied to kube api
         req.url = req.url.replace(`/${clusterId}`, apiKubePrefix);
       }
     } else if (req.headers["x-cluster-id"]) {
-      cluster = this.clusterInstances.get(req.headers["x-cluster-id"].toString());
+      cluster = this.clusterInstances.get(req.headers["x-cluster-id"].toString())?.[0];
     } else {
       const clusterId = getClusterIdFromHost(req.headers.host);
 
-      cluster = this.clusterInstances.get(clusterId);
+      cluster = this.clusterInstances.get(clusterId)?.[0];
     }
 
     return cluster;

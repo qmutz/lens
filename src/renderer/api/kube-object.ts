@@ -22,11 +22,11 @@
 // Base class for all kubernetes objects
 
 import moment from "moment";
-import { KubeJsonApiData, KubeJsonApiDataList, KubeJsonApiListMetadata, KubeJsonApiMetadata } from "./kube-json-api";
+import type { KubeJsonApiData, KubeJsonApiDataList, KubeJsonApiListMetadata, KubeJsonApiMetadata } from "./kube-json-api";
 import { autobind, formatDuration } from "../utils";
-import { ItemObject } from "../item.store";
+import type { ItemObject } from "../item.store";
 import { apiKube } from "./index";
-import { JsonApiParams } from "./json-api";
+import type { JsonApiParams } from "./json-api";
 import { resourceApplierApi } from "./endpoints/resource-applier.api";
 import { hasOptionalProperty, hasTypedProperty, isObject, isString, bindPredicate, isTypedArray, isRecord } from "../../common/utils/type-narrowing";
 
@@ -266,10 +266,16 @@ export class KubeObject implements ItemObject {
 
   // use unified resource-applier api for updating all k8s objects
   async update<T extends KubeObject>(data: Partial<T>) {
-    return resourceApplierApi.update<T>({
+    const newData = await resourceApplierApi.update({
       ...this.toPlainObject(),
       ...data,
     });
+
+    if (Array.isArray(newData)) {
+      throw new TypeError("Attempting to update a kubeobject returned back multiple items");
+    }
+
+    return new (this.constructor as (new (d: KubeJsonApiData) => T))(newData);
   }
 
   delete(params?: JsonApiParams) {

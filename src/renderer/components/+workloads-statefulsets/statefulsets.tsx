@@ -23,20 +23,19 @@ import "./statefulsets.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
-import { StatefulSet } from "../../api/endpoints";
+import type { RouteComponentProps } from "react-router";
+import type { StatefulSet } from "../../api/endpoints";
 import { podsStore } from "../+workloads-pods/pods.store";
 import { statefulSetStore } from "./statefulset.store";
 import { nodesStore } from "../+nodes/nodes.store";
 import { eventStore } from "../+events/event.store";
-import { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
+import type { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
 import { KubeObjectListLayout } from "../kube-object";
-import { IStatefulSetsRouteParams } from "../+workloads";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
 import { StatefulSetScaleDialog } from "./statefulset-scale-dialog";
 import { MenuItem } from "../menu/menu";
 import { Icon } from "../icon/icon";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
+import type { IStatefulSetsRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",
@@ -110,11 +109,3 @@ export function StatefulSetMenu(props: KubeObjectMenuProps<StatefulSet>) {
     </>
   );
 }
-
-kubeObjectMenuRegistry.add({
-  kind: "StatefulSet",
-  apiVersions: ["apps/v1"],
-  components: {
-    MenuItem: StatefulSetMenu
-  }
-});

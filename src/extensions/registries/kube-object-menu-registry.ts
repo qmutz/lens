@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import React from "react";
+import type React from "react";
 import { BaseRegistry } from "./base-registry";
 
 export interface KubeObjectMenuComponents {
@@ -39,5 +39,3 @@ export class KubeObjectMenuRegistry extends BaseRegistry<KubeObjectMenuRegistrat
     });
   }
 }
-
-export const kubeObjectMenuRegistry = new KubeObjectMenuRegistry();

@@ -24,7 +24,6 @@ import { Deployment, deploymentApi, IPodMetrics, podsApi, PodStatus } from "../.
 import { KubeObjectStore } from "../../kube-object.store";
 import { autobind } from "../../utils";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class DeploymentStore extends KubeObjectStore<Deployment> {
@@ -75,4 +74,3 @@ export class DeploymentStore extends KubeObjectStore<Deployment> {
 }
 
 export const deploymentStore = new DeploymentStore();
-apiManager.registerStore(deploymentStore);

@@ -25,14 +25,15 @@ import React from "react";
 import { observer } from "mobx-react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { volumeClaimStore } from "./volume-claim.store";
-import { PersistentVolumeClaim } from "../../api/endpoints/persistent-volume-claims.api";
+import type { PersistentVolumeClaim } from "../../api/endpoints/persistent-volume-claims.api";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { getDetailsUrl, KubeObjectListLayout } from "../kube-object";
-import { IVolumeClaimsRouteParams } from "./volume-claims.route";
+import { KubeObjectListLayout } from "../kube-object";
 import { unitsToBytes } from "../../utils/convertMemory";
 import { stopPropagation } from "../../utils";
 import { storageClassApi } from "../../api/endpoints";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+import type { IVolumeClaimsRouteParams } from "../../../common/routes";
+import { getDetailsUrl } from "../kube-object/utils";
 
 enum columnId {
   name = "name",

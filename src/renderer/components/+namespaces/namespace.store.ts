@@ -24,7 +24,6 @@ import { autobind, createStorage } from "../../utils";
 import { KubeObjectStore, KubeObjectStoreLoadingParams } from "../../kube-object.store";
 import { Namespace, namespacesApi } from "../../api/endpoints/namespaces.api";
 import { createPageParam } from "../../navigation";
-import { apiManager } from "../../api/api-manager";
 
 const selectedNamespaces = createStorage<string[] | undefined>("selected_namespaces", undefined);
 
@@ -200,4 +199,3 @@ export class NamespaceStore extends KubeObjectStore<Namespace> {
 }
 
 export const namespaceStore = new NamespaceStore();
-apiManager.registerStore(namespaceStore);

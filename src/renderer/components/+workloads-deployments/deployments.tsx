@@ -23,9 +23,9 @@ import "./deployments.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { Deployment, deploymentApi } from "../../api/endpoints";
-import { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
+import type { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
 import { MenuItem } from "../menu";
 import { Icon } from "../icon";
 import { DeploymentScaleDialog } from "./deployment-scale-dialog";
@@ -36,13 +36,12 @@ import { podsStore } from "../+workloads-pods/pods.store";
 import { nodesStore } from "../+nodes/nodes.store";
 import { eventStore } from "../+events/event.store";
 import { KubeObjectListLayout } from "../kube-object";
-import { IDeploymentsRouteParams } from "../+workloads";
 import { cssNames } from "../../utils";
 import kebabCase from "lodash/kebabCase";
 import orderBy from "lodash/orderBy";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
 import { Notifications } from "../notifications";
+import type { IDeploymentsRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",
@@ -153,11 +152,3 @@ export function DeploymentMenu(props: KubeObjectMenuProps<Deployment>) {
     </>
   );
 }
-
-kubeObjectMenuRegistry.add({
-  kind: "Deployment",
-  apiVersions: ["apps/v1"],
-  components: {
-    MenuItem: DeploymentMenu
-  }
-});

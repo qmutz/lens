@@ -217,24 +217,22 @@ export class WizardStep extends React.Component<WizardStepProps, WizardStepState
       step, isFirst, isLast, children,
       loading, customButtons, disabledNext, scrollable,
       hideNextBtn, hideBackBtn, beforeContent, afterContent, noValidate, skip, moreButtons,
+      contentClass, className, nextLabel, prevLabel,
+      waiting = this.state.waiting,
     } = this.props;
-    let { className, contentClass, nextLabel, prevLabel, waiting } = this.props;
+    const classNames = cssNames(`WizardStep step${step}`, className);
+    const contentClassNames = cssNames("step-content", { scrollable }, contentClass);
 
     if (skip) {
-      return;
+      return null;
     }
-    waiting = (waiting !== undefined) ? waiting : this.state.waiting;
-    className = cssNames(`WizardStep step${step}`, className);
-    contentClass = cssNames("step-content", { scrollable }, contentClass);
-    prevLabel = prevLabel || (isFirst() ? "Cancel" : "Back");
-    nextLabel = nextLabel || (isLast() ? "Submit" : "Next");
 
     return (
-      <form className={className}
+      <form className={classNames}
         onSubmit={prevDefault(this.submit)} noValidate={noValidate}
         ref={e => this.form = e}>
         {beforeContent}
-        <div className={contentClass}>
+        <div className={contentClassNames}>
           {loading ? this.renderLoading() : children}
         </div>
         {customButtons !== undefined ? customButtons : (
@@ -242,13 +240,17 @@ export class WizardStep extends React.Component<WizardStepProps, WizardStepState
             {moreButtons}
             <Button
               className="back-btn"
-              plain label={prevLabel} hidden={hideBackBtn}
+              plain
+              label={prevLabel || (isFirst() ? "Cancel" : "Back")}
+              hidden={hideBackBtn}
               onClick={this.prev}
             />
             <Button
               primary type="submit"
-              label={nextLabel} hidden={hideNextBtn}
-              waiting={waiting} disabled={disabledNext}
+              label={nextLabel || (isLast() ? "Submit" : "Next")}
+              hidden={hideNextBtn}
+              waiting={waiting}
+              disabled={disabledNext}
             />
           </div>
         )}

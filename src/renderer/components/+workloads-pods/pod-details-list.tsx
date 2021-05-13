@@ -26,15 +26,15 @@ import kebabCase from "lodash/kebabCase";
 import { reaction } from "mobx";
 import { disposeOnUnmount, observer } from "mobx-react";
 import { podsStore } from "./pods.store";
-import { Pod } from "../../api/endpoints";
+import type { Pod } from "../../api/endpoints";
 import { autobind, bytesToUnits, cssNames, interval, prevDefault } from "../../utils";
 import { LineProgress } from "../line-progress";
-import { KubeObject } from "../../api/kube-object";
+import type { KubeObject } from "../../api/kube-object";
 import { Table, TableCell, TableHead, TableRow } from "../table";
 import { Spinner } from "../spinner";
 import { DrawerTitle } from "../drawer";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
-import { showDetails } from "../kube-object";
+import { toggleDetails } from "../kube-object/utils";
 
 enum sortBy {
   name = "name",
@@ -130,7 +130,7 @@ export class PodDetailsList extends React.Component<Props> {
         key={pod.getId()}
         sortItem={pod}
         nowrap
-        onClick={prevDefault(() => showDetails(pod.selfLink, false))}
+        onClick={prevDefault(() => toggleDetails(pod.selfLink, false))}
       >
         <TableCell className="name">{pod.getName()}</TableCell>
         <TableCell className="warning"><KubeObjectStatusIcon key="icon" object={pod}/></TableCell>

@@ -267,6 +267,8 @@ export function validateKubeConfig(config: KubeConfig, contextName: string, vali
         return new ExecValidationNotFoundError(execCommand, isAbsolute);
       }
     }
+
+    return undefined;
   } catch (error) {
     return error;
   }

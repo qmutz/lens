@@ -24,61 +24,63 @@ import "./network.scss";
 import React from "react";
 import { observer } from "mobx-react";
 import { TabLayout, TabLayoutRoute } from "../layout/tab-layout";
-import { Services, servicesRoute, servicesURL } from "../+network-services";
-import { endpointRoute, Endpoints, endpointURL } from "../+network-endpoints";
-import { Ingresses, ingressRoute, ingressURL } from "../+network-ingresses";
-import { NetworkPolicies, networkPoliciesRoute, networkPoliciesURL } from "../+network-policies";
+import { Services } from "../+network-services";
+import { Endpoints } from "../+network-endpoints";
+import { Ingresses } from "../+network-ingresses";
+import { NetworkPolicies } from "../+network-policies";
 import { namespaceUrlParam } from "../+namespaces/namespace.store";
-import { isAllowedResource } from "../../../common/rbac";
+import * as routes from "../../../common/routes";
+import type { Cluster } from "../../../main/cluster";
+import { getHostedCluster } from "../../../common/cluster-store";
 
 @observer
 export class Network extends React.Component {
-  static get tabRoutes(): TabLayoutRoute[] {
+  static tabRoutes(cluster: Cluster): TabLayoutRoute[] {
     const query = namespaceUrlParam.toObjectParam();
-    const routes: TabLayoutRoute[] = [];
+    const tabs: TabLayoutRoute[] = [];
 
-    if (isAllowedResource("services")) {
-      routes.push({
+    if (cluster.isAllAllowedResource("services")) {
+      tabs.push({
         title: "Services",
         component: Services,
-        url: servicesURL({ query }),
-        routePath: servicesRoute.path.toString(),
+        url: routes.servicesURL({ query }),
+        routePath: routes.servicesRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("endpoints")) {
-      routes.push({
+    if (cluster.isAllAllowedResource("endpoints")) {
+      tabs.push({
         title: "Endpoints",
         component: Endpoints,
-        url: endpointURL({ query }),
-        routePath: endpointRoute.path.toString(),
+        url: routes.endpointURL({ query }),
+        routePath: routes.endpointRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("ingresses")) {
-      routes.push({
+    if (cluster.isAllAllowedResource("ingresses")) {
+      tabs.push({
         title: "Ingresses",
         component: Ingresses,
-        url: ingressURL({ query }),
-        routePath: ingressRoute.path.toString(),
+        url: routes.ingressURL({ query }),
+        routePath: routes.ingressRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("networkpolicies")) {
-      routes.push({
+    if (cluster.isAllAllowedResource("networkpolicies")) {
+      tabs.push({
         title: "Network Policies",
         component: NetworkPolicies,
-        url: networkPoliciesURL({ query }),
-        routePath: networkPoliciesRoute.path.toString(),
+        url: routes.networkPoliciesURL({ query }),
+        routePath: routes.networkPoliciesRoute.path.toString(),
       });
     }
 
-    return routes;
+    return tabs;
   }
 
   render() {
     return (
-      <TabLayout className="Network" tabs={Network.tabRoutes}/>
+      <TabLayout className="Network" tabs={Network.tabRoutes(getHostedCluster())}/>
     );
   }
 }

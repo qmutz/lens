@@ -18,7 +18,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { KubernetesObject } from "@kubernetes/client-node";
+import type { KubernetesObject } from "@kubernetes/client-node";
 import { exec } from "child_process";
 import fs from "fs";
 import * as yaml from "js-yaml";

@@ -30,11 +30,10 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { cssNames } from "../../utils";
 import { createResourceStore } from "./create-resource.store";
-import { IDockTab } from "./dock.store";
+import type { IDockTab } from "./dock.store";
 import { EditorPanel } from "./editor-panel";
 import { InfoPanel } from "./info-panel";
 import { resourceApplierApi } from "../../api/endpoints/resource-applier.api";
-import { JsonApiErrorParsed } from "../../api/json-api";
 import { Notifications } from "../notifications";
 
 interface Props {
@@ -87,18 +86,25 @@ export class CreateResource extends React.Component<Props> {
   };
 
   create = async () => {
-    if (this.error) return;
-    if (!this.data.trim()) return; // do not save when field is empty
-    const resources = jsYaml.safeLoadAll(this.data)
-      .filter(v => !!v); // skip empty documents if "---" pasted at the beginning or end
+    if (this.error) return undefined;
+    if (!this.data.trim()) return undefined; // do not save when field is empty
+    const resources = jsYaml.safeLoadAll(this.data).filter(Boolean); // skip empty documents if "---" pasted at the beginning or end
     const createdResources: string[] = [];
     const errors: string[] = [];
 
     await Promise.all(
-      resources.map(data => {
-        return resourceApplierApi.update(data)
-          .then(item => createdResources.push(item.getName()))
-          .catch((err: JsonApiErrorParsed) => errors.push(err.toString()));
+      resources.map(async resource => {
+        try {
+          const newResource = await resourceApplierApi.update(resource);
+
+          if (Array.isArray(newResource)) {
+            throw new TypeError("Attempting to update a kubeobject returned back multiple items");
+          }
+
+          return createdResources.push(newResource.metadata.name);
+        } catch (err) {
+          return errors.push(err.toString());
+        }
       })
     );
 

@@ -26,7 +26,7 @@ import { observer } from "mobx-react";
 import { history } from "./navigation";
 import { ClusterManager } from "./components/cluster-manager";
 import { ErrorBoundary } from "./components/error-boundary";
-import { Notifications } from "./components/notifications";
+import { NotificationList } from "./components/notifications";
 import { ConfirmDialog } from "./components/confirm-dialog";
 import { ExtensionLoader } from "../extensions/extension-loader";
 import { broadcastMessage } from "../common/ipc";
@@ -36,7 +36,7 @@ import { registerIpcHandlers } from "./ipc";
 import { ipcRenderer } from "electron";
 import { IpcRendererNavigationEvents } from "./navigation/events";
 import { CatalogEntityRegistry } from "./api/catalog-entity-registry";
-import { commandRegistry } from "../extensions/registries";
+import { CommandRegistry } from "../extensions/registries";
 import { reaction } from "mobx";
 
 @observer
@@ -56,12 +56,10 @@ export class LensApp extends React.Component {
 
   componentDidMount() {
     reaction(() => CatalogEntityRegistry.getInstance().items, (items) => {
-      if (!commandRegistry.activeEntity) {
-        return;
-      }
+      const registry = CommandRegistry.getInstance();
 
-      if (!items.includes(commandRegistry.activeEntity)) {
-        commandRegistry.activeEntity = null;
+      if (registry.activeEntity && !items.includes(registry.activeEntity)) {
+        registry.activeEntity = null;
       }
     });
   }
@@ -74,7 +72,7 @@ export class LensApp extends React.Component {
             <Route component={ClusterManager}/>
           </Switch>
         </ErrorBoundary>
-        <Notifications/>
+        <NotificationList/>
         <ConfirmDialog/>
         <CommandContainer />
       </Router>

@@ -23,11 +23,11 @@ import "./volume-details-list.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { PersistentVolume } from "../../api/endpoints/persistent-volume.api";
+import type { PersistentVolume } from "../../api/endpoints/persistent-volume.api";
 import { autobind } from "../../../common/utils/autobind";
 import { TableRow } from "../table/table-row";
 import { cssNames, prevDefault } from "../../utils";
-import { showDetails } from "../kube-object/kube-object-details";
+import { toggleDetails } from "../kube-object/utils";
 import { TableCell } from "../table/table-cell";
 import { Spinner } from "../spinner/spinner";
 import { DrawerTitle } from "../drawer/drawer-title";
@@ -64,7 +64,7 @@ export class VolumeDetailsList extends React.Component<Props> {
         key={volume.getId()}
         sortItem={volume}
         nowrap
-        onClick={prevDefault(() => showDetails(volume.selfLink, false))}
+        onClick={prevDefault(() => toggleDetails(volume.selfLink, false))}
       >
         <TableCell className="name">{volume.getName()}</TableCell>
         <TableCell className="capacity">{volume.getCapacity()}</TableCell>

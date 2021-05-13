@@ -24,18 +24,19 @@ import { Select } from "../select";
 import { computed, observable, toJS } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
-import { commandRegistry } from "../../../extensions/registries/command-registry";
+import { CommandRegistry } from "../../../extensions/registries/command-registry";
 import { ClusterStore } from "../../../common/cluster-store";
-import { CommandOverlay } from "./command-container";
+import { CommandOverlay } from "./command-overlay";
 import { broadcastMessage } from "../../../common/ipc";
 import { navigate } from "../../navigation";
-import { clusterViewURL } from "../cluster-manager/cluster-view.route";
+import { clusterViewURL } from "../../../common/routes";
 
 @observer
 export class CommandDialog extends React.Component {
   @observable menuIsOpen = true;
 
   @computed get options() {
+    const commandRegistry = CommandRegistry.getInstance();
     const context = {
       entity: commandRegistry.activeEntity
     };
@@ -62,6 +63,7 @@ export class CommandDialog extends React.Component {
   }
 
   private onChange(value: string) {
+    const commandRegistry = CommandRegistry.getInstance();
     const command = commandRegistry.getItems().find((cmd) => cmd.id === value);
 
     if (!command) {
@@ -77,7 +79,7 @@ export class CommandDialog extends React.Component {
         action({
           entity: commandRegistry.activeEntity
         });
-      } else if(commandRegistry.activeEntity) {
+      } else if (commandRegistry.activeEntity) {
         navigate(clusterViewURL({
           params: {
             clusterId: commandRegistry.activeEntity.metadata.uid

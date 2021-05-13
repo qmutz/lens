@@ -24,7 +24,6 @@ import { autobind } from "../../utils";
 import { KubeObjectStore } from "../../kube-object.store";
 import { Deployment, IPodMetrics, podsApi, ReplicaSet, replicaSetApi } from "../../api/endpoints";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { apiManager } from "../../api/api-manager";
 import { PodStatus } from "../../api/endpoints/pods.api";
 
 @autobind()
@@ -74,4 +73,3 @@ export class ReplicaSetStore extends KubeObjectStore<ReplicaSet> {
 }
 
 export const replicaSetStore = new ReplicaSetStore();
-apiManager.registerStore(replicaSetStore);

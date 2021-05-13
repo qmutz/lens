@@ -20,13 +20,13 @@
  */
 
 import type { InputProps } from "./input";
-import { ReactNode } from "react";
+import type React from "react";
 import fse from "fs-extra";
 
 export interface InputValidator {
   debounce?: number; // debounce for async validators in ms
   condition?(props: InputProps): boolean; // auto-bind condition depending on input props
-  message?: ReactNode | ((value: string, props?: InputProps) => ReactNode | string);
+  message?: React.ReactNode | ((value: string, props?: InputProps) => React.ReactNode | string);
   validate(value: string, props?: InputProps): boolean | Promise<any>; // promise can throw error message
 }
 

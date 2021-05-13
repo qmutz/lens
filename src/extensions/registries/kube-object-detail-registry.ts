@@ -19,11 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import React from "react";
+import type React from "react";
+import type { KubeObjectDetailsProps } from "../renderer-api/components";
 import { BaseRegistry } from "./base-registry";
 
 export interface KubeObjectDetailComponents {
-  Details: React.ComponentType<any>;
+  Details: React.ComponentType<KubeObjectDetailsProps>;
 }
 
 export interface KubeObjectDetailRegistration {
@@ -42,5 +43,3 @@ export class KubeObjectDetailRegistry extends BaseRegistry<KubeObjectDetailRegis
     return items.sort((a, b) => (b.priority ?? 50) - (a.priority ?? 50));
   }
 }
-
-export const kubeObjectDetailRegistry = new KubeObjectDetailRegistry();

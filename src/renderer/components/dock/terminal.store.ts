@@ -109,9 +109,7 @@ export class TerminalStore {
   isDisconnected(tabId: TabId) {
     const terminalApi = this.connections.get(tabId);
 
-    if (terminalApi) {
-      return terminalApi.readyState === WebSocketApiState.CLOSED;
-    }
+    return terminalApi?.readyState === WebSocketApiState.CLOSED;
   }
 
   sendCommand(command: string, options: { enter?: boolean; newTab?: boolean; tabId?: TabId } = {}) {

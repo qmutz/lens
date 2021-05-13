@@ -20,7 +20,7 @@
  */
 
 import React from "react";
-import { HelmRelease } from "../../api/endpoints/helm-releases.api";
+import type { HelmRelease } from "../../api/endpoints/helm-releases.api";
 import { autobind, cssNames } from "../../utils";
 import { releaseStore } from "./release.store";
 import { MenuActions, MenuActionsProps } from "../menu/menu-actions";
@@ -56,18 +56,15 @@ export class HelmReleaseMenu extends React.Component<Props> {
   renderContent() {
     const { release, toolbar } = this.props;
 
-    if (!release) return;
-    const hasRollback = release && release.getRevision() > 1;
+    if (!release || release.getRevision() <= 0) {
+      return null;
+    }
 
     return (
-      <>
-        {hasRollback && (
-          <MenuItem onClick={this.rollback}>
-            <Icon material="history" interactive={toolbar} title="Rollback"/>
-            <span className="title">Rollback</span>
-          </MenuItem>
-        )}
-      </>
+      <MenuItem onClick={this.rollback}>
+        <Icon material="history" interactive={toolbar} title="Rollback" />
+        <span className="title">Rollback</span>
+      </MenuItem>
     );
   }
 

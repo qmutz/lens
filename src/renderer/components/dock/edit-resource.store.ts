@@ -23,9 +23,9 @@ import { autobind, noop } from "../../utils";
 import { DockTabStore } from "./dock-tab.store";
 import { autorun, IReactionDisposer } from "mobx";
 import { dockStore, IDockTab, TabId, TabKind } from "./dock.store";
-import { KubeObject } from "../../api/kube-object";
-import { apiManager } from "../../api/api-manager";
-import { KubeObjectStore } from "../../kube-object.store";
+import type { KubeObject } from "../../api/kube-object";
+import { ApiManager } from "../../api/api-manager";
+import type { KubeObjectStore } from "../../kube-object.store";
 
 export interface EditingResource {
   resource: string; // resource path, e.g. /api/v1/namespaces/default
@@ -52,7 +52,7 @@ export class EditResourceStore extends DockTabStore<EditingResource> {
           return;
         }
         this.watchers.set(tabId, autorun(() => {
-          const store = apiManager.getStore(resource);
+          const store = ApiManager.getInstance().getStore(resource);
 
           if (store) {
             const isActiveTab = dockStore.isOpen && dockStore.selectedTabId === tabId;
@@ -85,7 +85,7 @@ export class EditResourceStore extends DockTabStore<EditingResource> {
   }
 
   getStore(tabId: TabId): KubeObjectStore | undefined {
-    return apiManager.getStore(this.getResourcePath(tabId));
+    return ApiManager.getInstance().getStore(this.getResourcePath(tabId));
   }
 
   getResource(tabId: TabId): KubeObject | undefined {

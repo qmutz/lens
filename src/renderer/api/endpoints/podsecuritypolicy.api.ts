@@ -23,6 +23,14 @@ import { autobind } from "../../utils";
 import { KubeObject } from "../kube-object";
 import { KubeApi } from "../kube-api";
 
+export interface GroupRule {
+  rule: string;
+  ranges?: {
+    max: number;
+    min: number;
+  }[];
+}
+
 @autobind()
 export class PodSecurityPolicy extends KubeObject {
   static kind = "PodSecurityPolicy";
@@ -47,10 +55,7 @@ export class PodSecurityPolicy extends KubeObject {
     defaultAddCapabilities?: string[];
     defaultAllowPrivilegeEscalation?: boolean;
     forbiddenSysctls?: string[];
-    fsGroup?: {
-      rule: string;
-      ranges: { max: number; min: number }[];
-    };
+    fsGroup?: GroupRule;
     hostIPC?: boolean;
     hostNetwork?: boolean;
     hostPID?: boolean;
@@ -61,14 +66,8 @@ export class PodSecurityPolicy extends KubeObject {
     privileged?: boolean;
     readOnlyRootFilesystem?: boolean;
     requiredDropCapabilities?: string[];
-    runAsGroup?: {
-      ranges: { max: number; min: number }[];
-      rule: string;
-    };
-    runAsUser?: {
-      rule: string;
-      ranges: { max: number; min: number }[];
-    };
+    runAsGroup?: GroupRule;
+    runAsUser?: GroupRule;
     runtimeClass?: {
       allowedRuntimeClassNames: string[];
       defaultRuntimeClassName: string;
@@ -82,10 +81,7 @@ export class PodSecurityPolicy extends KubeObject {
         user: string;
       };
     };
-    supplementalGroups?: {
-      rule: string;
-      ranges: { max: number; min: number }[];
-    };
+    supplementalGroups?: GroupRule;
     volumes?: string[];
   };
 

@@ -24,17 +24,16 @@ import { ipcRenderer } from "electron";
 import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
-
 import { activate } from "../../../common/cluster-ipc";
-import { ClusterId, ClusterStore } from "../../../common/cluster-store";
+import { ClusterStore } from "../../../common/cluster-store";
 import { requestMain, subscribeToBroadcast } from "../../../common/ipc";
-import { Cluster } from "../../../main/cluster";
+import type { Cluster } from "../../../main/cluster";
 import { cssNames, IClassName } from "../../utils";
 import { Button } from "../button";
 import { Icon } from "../icon";
 import { CubeSpinner } from "../spinner";
-
 import type { KubeAuthProxyLog } from "../../../main/kube-auth-proxy";
+import type { ClusterId } from "../../../common/cluster-types";
 
 interface Props {
   className?: IClassName;

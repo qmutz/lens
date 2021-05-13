@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Config from "conf";
-import { Options as ConfOptions } from "conf/dist/source/types";
+import type { Options as ConfOptions } from "conf/dist/source/types";
 import { app, ipcMain, IpcMainEvent, ipcRenderer, IpcRendererEvent, remote } from "electron";
 import isEqual from "lodash/isEqual";
 import { IReactionOptions, observable, reaction, runInAction, when } from "mobx";

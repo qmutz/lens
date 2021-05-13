@@ -26,13 +26,13 @@ import kebabCase from "lodash/kebabCase";
 import { DrawerItem, DrawerTitle } from "../drawer";
 import { Link } from "react-router-dom";
 import { observer } from "mobx-react";
-import { KubeObjectDetailsProps, getDetailsUrl } from "../kube-object";
-import { KubeEvent } from "../../api/endpoints/events.api";
+import type { KubeObjectDetailsProps } from "../kube-object";
+import type { KubeEvent } from "../../api/endpoints/events.api";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
 import { Table, TableCell, TableHead, TableRow } from "../table";
-import { lookupApiLink } from "../../api/kube-api";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
 import { LocaleDate } from "../locale-date";
+import { ApiManager } from "../../api/api-manager";
+import { getDetailsUrl } from "../kube-object/utils";
 
 interface Props extends KubeObjectDetailsProps<KubeEvent> {
 }
@@ -42,7 +42,7 @@ export class EventDetails extends React.Component<Props> {
   render() {
     const { object: event } = this.props;
 
-    if (!event) return;
+    if (!event) return null;
     const { message, reason, count, type, involvedObject } = event;
     const { kind, name, namespace, fieldPath } = involvedObject;
 
@@ -82,7 +82,7 @@ export class EventDetails extends React.Component<Props> {
           </TableHead>
           <TableRow>
             <TableCell>
-              <Link to={getDetailsUrl(lookupApiLink(involvedObject, event))}>
+              <Link to={getDetailsUrl(ApiManager.getInstance().lookupApiLink(involvedObject, event))}>
                 {name}
               </Link>
             </TableCell>
@@ -95,11 +95,3 @@ export class EventDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "Event",
-  apiVersions: ["v1"],
-  components: {
-    Details: (props) => <EventDetails {...props}/>
-  }
-});

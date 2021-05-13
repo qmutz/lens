@@ -79,9 +79,7 @@ export class PersistentVolume extends KubeObject {
   }
 
   getStatus() {
-    if (!this.status) return;
-
-    return this.status.phase || "-";
+    return this.status?.phase || "-";
   }
 
   getStorageClass(): string {

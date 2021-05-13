@@ -53,9 +53,13 @@ import { CatalogPusher } from "./catalog-pusher";
 import { HotbarStore } from "../common/hotbar-store";
 import { HelmRepoManager } from "./helm/helm-repo-manager";
 import { KubeconfigSyncManager } from "./catalog-sources";
-import { handleWsUpgrade } from "./proxy/ws-upgrade";
-import { CatalogCategoryRegistry, CatalogEntityRegistry } from "../common/catalog";
-import { registerDefaultCategories } from "../common/default-categories";
+import { CatalogEntityRegistry } from "../common/catalog";
+import { initCatalogCategories } from "../common/initializers/catalog-categories";
+import { Router } from "./router";
+import { initalizeClusterDetectorRegistry } from "./cluster-detectors";
+import { initMenu } from "./menu";
+import { initTray } from "./tray";
+import { initExtensionRegistries } from "../common/initializers/extension-registries";
 
 const workingDir = path.join(app.getPath("appData"), appName);
 
@@ -122,8 +126,9 @@ app.on("ready", async () => {
 
   registerFileProtocol("static", __static);
 
-  CatalogCategoryRegistry.createInstance();
-  registerDefaultCategories();
+  initExtensionRegistries();
+  initalizeClusterDetectorRegistry();
+  initCatalogCategories();
   CatalogEntityRegistry.createInstance();
 
   const userStore = UserStore.createInstance();
@@ -144,7 +149,10 @@ app.on("ready", async () => {
     filesystemStore.load(),
   ]);
 
-  const lensProxy = LensProxy.createInstance(handleWsUpgrade);
+  const lensProxy = LensProxy.createInstance(
+    new Router(),
+    (req) => ClusterManager.getInstance().getClusterForRequest(req)
+  );
 
   ClusterManager.createInstance();
   KubeconfigSyncManager.createInstance().startSync();
@@ -185,6 +193,8 @@ app.on("ready", async () => {
   logger.info("🖥️  Starting WindowManager");
   const windowManager = WindowManager.createInstance();
 
+  initMenu(windowManager);
+  initTray(windowManager);
   installDeveloperTools();
 
   if (!startHidden) {

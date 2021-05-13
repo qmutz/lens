@@ -82,6 +82,7 @@ export class DropFileInput<T extends HTMLElement = any> extends React.Component<
       if (disabled) {
         return contentElem;
       }
+
       const isValidContentElem = React.isValidElement(contentElem);
 
       if (isValidContentElem) {
@@ -97,6 +98,8 @@ export class DropFileInput<T extends HTMLElement = any> extends React.Component<
 
         return React.cloneElement(contentElem, contentElemProps);
       }
+
+      return null;
     } catch (err) {
       logger.error(`Error: <DropFileInput/> must contain only single child element`);
 

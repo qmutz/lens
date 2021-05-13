@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { KubeObject, KubeObjectStatus } from "../renderer-api/k8s-api";
+import type { KubeObject, KubeObjectStatus } from "../renderer-api/k8s-api";
 import { BaseRegistry } from "./base-registry";
 
 export interface KubeObjectStatusRegistration {
@@ -43,5 +43,3 @@ export class KubeObjectStatusRegistry extends BaseRegistry<KubeObjectStatusRegis
       .filter(Boolean);
   }
 }
-
-export const kubeObjectStatusRegistry = new KubeObjectStatusRegistry();

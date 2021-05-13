@@ -22,14 +22,13 @@
 import "./nodes.scss";
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { cssNames, interval } from "../../utils";
 import { TabLayout } from "../layout/tab-layout";
 import { nodesStore } from "./nodes.store";
 import { podsStore } from "../+workloads-pods/pods.store";
 import { KubeObjectListLayout } from "../kube-object";
-import { INodesRouteParams } from "./nodes.route";
-import { Node } from "../../api/endpoints/nodes.api";
+import type { Node } from "../../api/endpoints/nodes.api";
 import { LineProgress } from "../line-progress";
 import { bytesToUnits } from "../../utils/convertMemory";
 import { Tooltip, TooltipPosition } from "../tooltip";
@@ -37,6 +36,7 @@ import kebabCase from "lodash/kebabCase";
 import upperFirst from "lodash/upperFirst";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
 import { Badge } from "../badge/badge";
+import type { INodesRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",
@@ -73,8 +73,8 @@ export class Nodes extends React.Component<Props> {
     const usage = metrics[0];
     const cores = metrics[1];
     const cpuUsagePercent = Math.ceil(usage * 100) / cores;
-    const cpuUsagePercentLabel: String = cpuUsagePercent % 1 === 0 
-      ? cpuUsagePercent.toString() 
+    const cpuUsagePercentLabel: String = cpuUsagePercent % 1 === 0
+      ? cpuUsagePercent.toString()
       : cpuUsagePercent.toFixed(2);
 
     return (

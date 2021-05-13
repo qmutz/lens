@@ -22,7 +22,6 @@
 import { KubeObjectStore } from "../../kube-object.store";
 import { autobind } from "../../utils";
 import { Endpoint, endpointApi } from "../../api/endpoints/endpoint.api";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class EndpointStore extends KubeObjectStore<Endpoint> {
@@ -30,4 +29,3 @@ export class EndpointStore extends KubeObjectStore<Endpoint> {
 }
 
 export const endpointStore = new EndpointStore();
-apiManager.registerStore(endpointStore);

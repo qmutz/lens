@@ -24,7 +24,7 @@ import { reaction } from "mobx";
 import { podsStore } from "../+workloads-pods/pods.store";
 
 import { IPodContainer, Pod } from "../../api/endpoints";
-import { WorkloadKubeObject } from "../../api/workload-kube-object";
+import type { WorkloadKubeObject } from "../../api/workload-kube-object";
 import { DockTabStore } from "./dock-tab.store";
 import { dockStore, IDockTab, TabKind } from "./dock.store";
 

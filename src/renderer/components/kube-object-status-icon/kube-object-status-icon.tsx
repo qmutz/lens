@@ -24,10 +24,11 @@ import "./kube-object-status-icon.scss";
 import React from "react";
 import { Icon } from "../icon";
 import { cssNames, formatDuration } from "../../utils";
-import { KubeObject, KubeObjectStatus, KubeObjectStatusLevel } from "../../..//extensions/renderer-api/k8s-api";
-import { kubeObjectStatusRegistry } from "../../../extensions/registries";
+import type { KubeObject, KubeObjectStatus } from "../../..//extensions/renderer-api/k8s-api";
+import { KubeObjectStatusLevel } from "../../..//extensions/renderer-api/k8s-api";
+import { KubeObjectStatusRegistry } from "../../../extensions/registries";
 
-function statusClassName(level: number): string {
+function statusClassName(level: number): string | undefined {
   switch (level) {
     case KubeObjectStatusLevel.INFO:
       return "info";
@@ -35,6 +36,8 @@ function statusClassName(level: number): string {
       return "warning";
     case KubeObjectStatusLevel.CRITICAL:
       return "error";
+    default:
+      return undefined;
   }
 }
 
@@ -105,7 +108,7 @@ export class KubeObjectStatusIcon extends React.Component<Props> {
   }
 
   render() {
-    const statuses = kubeObjectStatusRegistry.getItemsForObject(this.props.object);
+    const statuses = KubeObjectStatusRegistry.getInstance().getItemsForObject(this.props.object);
 
     if (statuses.length === 0) {
       return null;

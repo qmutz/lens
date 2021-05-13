@@ -1,4 +1,4 @@
-import Config from "conf";
+import type Config from "conf";
 import { isTestEnv } from "../common/vars";
 
 export interface MigrationOpts {

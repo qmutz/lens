@@ -23,11 +23,11 @@ import React from "react";
 import { computed } from "mobx";
 import { disposeOnUnmount, observer } from "mobx-react";
 import { cssNames } from "../../utils";
-import { KubeObject } from "../../api/kube-object";
+import type { KubeObject } from "../../api/kube-object";
 import { ItemListLayout, ItemListLayoutProps } from "../item-object-list/item-list-layout";
-import { KubeObjectStore } from "../../kube-object.store";
+import type { KubeObjectStore } from "../../kube-object.store";
 import { KubeObjectMenu } from "./kube-object-menu";
-import { kubeSelectedUrlParam, showDetails } from "./kube-object-details";
+import { kubeSelectedUrlParam, toggleDetails } from "./utils";
 import { kubeWatchApi } from "../../api/kube-watch-api";
 import { clusterContext } from "../context";
 
@@ -37,7 +37,7 @@ export interface KubeObjectListLayoutProps extends ItemListLayoutProps {
 }
 
 const defaultProps: Partial<KubeObjectListLayoutProps> = {
-  onDetails: (item: KubeObject) => showDetails(item.selfLink),
+  onDetails: (item: KubeObject) => toggleDetails(item.selfLink),
 };
 
 @observer

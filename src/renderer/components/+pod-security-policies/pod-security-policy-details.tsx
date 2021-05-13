@@ -24,25 +24,22 @@ import "./pod-security-policy-details.scss";
 import React from "react";
 import { observer } from "mobx-react";
 import { DrawerItem, DrawerTitle } from "../drawer";
-import { KubeObjectDetailsProps } from "../kube-object";
-import { PodSecurityPolicy } from "../../api/endpoints";
+import type { KubeObjectDetailsProps } from "../kube-object";
+import type { GroupRule, PodSecurityPolicy } from "../../api/endpoints";
 import { Badge } from "../badge";
 import { Table, TableCell, TableHead, TableRow } from "../table";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
 
 interface Props extends KubeObjectDetailsProps<PodSecurityPolicy> {
 }
 
 @observer
 export class PodSecurityPolicyDetails extends React.Component<Props> {
-  renderRuleGroup(
-    title: React.ReactNode,
-    group: {
-      rule: string;
-      ranges?: { max: number; min: number }[];
-    }) {
-    if (!group) return;
+  renderRuleGroup(title: React.ReactNode, group: GroupRule) {
+    if (!group) {
+      return null;
+    }
+
     const { rule, ranges } = group;
 
     return (
@@ -53,9 +50,7 @@ export class PodSecurityPolicyDetails extends React.Component<Props> {
         </DrawerItem>
         {ranges && (
           <DrawerItem name="Ranges (Min-Max)" labelsOnly>
-            {ranges.map(({ min, max }, index) => {
-              return <Badge key={index} label={`${min} - ${max}`}/>;
-            })}
+            {ranges.map(({ min, max }, index) => <Badge key={index} label={`${min} - ${max}`} />)}
           </DrawerItem>
         )}
       </>
@@ -231,11 +226,3 @@ export class PodSecurityPolicyDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "PodSecurityPolicy",
-  apiVersions: ["policy/v1beta1"],
-  components: {
-    Details: (props) => <PodSecurityPolicyDetails {...props}/>
-  }
-});

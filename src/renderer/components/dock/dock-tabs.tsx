@@ -25,7 +25,7 @@ import { Icon } from "../icon";
 import { Tabs } from "../tabs/tabs";
 import { isCreateResourceTab } from "./create-resource.store";
 import { DockTab } from "./dock-tab";
-import { IDockTab } from "./dock.store";
+import type { IDockTab } from "./dock.store";
 import { isEditResourceTab } from "./edit-resource.store";
 import { isInstallChartTab } from "./install-chart.store";
 import { isLogsTab } from "./log-tab.store";
@@ -57,6 +57,8 @@ export const DockTabs = ({ tabs, autoFocus, selectedTab, onChangeTab }: Props) =
     if (isLogsTab(tab)) {
       return <DockTab value={tab} icon="subject" />;
     }
+
+    return <DockTab value={tab} icon="warning_amber" />;
   };
 
   return (

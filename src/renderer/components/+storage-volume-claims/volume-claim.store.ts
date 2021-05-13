@@ -23,7 +23,6 @@ import { action, observable } from "mobx";
 import { KubeObjectStore } from "../../kube-object.store";
 import { autobind } from "../../utils";
 import { IPvcMetrics, PersistentVolumeClaim, pvcApi } from "../../api/endpoints";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class VolumeClaimStore extends KubeObjectStore<PersistentVolumeClaim> {
@@ -41,4 +40,3 @@ export class VolumeClaimStore extends KubeObjectStore<PersistentVolumeClaim> {
 }
 
 export const volumeClaimStore = new VolumeClaimStore();
-apiManager.registerStore(volumeClaimStore);

@@ -19,11 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export type KubeObjectStatus = {
+export interface KubeObjectStatus {
   level: KubeObjectStatusLevel;
   text: string;
   timestamp?: string;
-};
+}
 
 export enum KubeObjectStatusLevel {
   INFO = 1,

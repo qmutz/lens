@@ -23,13 +23,13 @@ import "./services.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
-import { IServicesRouteParams } from "./services.route";
-import { Service } from "../../api/endpoints/service.api";
+import type { RouteComponentProps } from "react-router";
+import type { Service } from "../../api/endpoints/service.api";
 import { KubeObjectListLayout } from "../kube-object";
 import { Badge } from "../badge";
 import { serviceStore } from "./services.store";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+import type { IServicesRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",

@@ -23,14 +23,14 @@ import "./hpa.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { KubeObjectListLayout } from "../kube-object";
-import { IHpaRouteParams } from "./hpa.route";
-import { HorizontalPodAutoscaler } from "../../api/endpoints/hpa.api";
+import type { HorizontalPodAutoscaler } from "../../api/endpoints/hpa.api";
 import { hpaStore } from "./hpa.store";
 import { Badge } from "../badge";
 import { cssNames } from "../../utils";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+import type { IHpaRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",

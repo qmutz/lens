@@ -24,7 +24,6 @@ import { autobind } from "../../utils";
 import { KubeObjectStore } from "../../kube-object.store";
 import { IPodMetrics, podsApi, PodStatus, StatefulSet, statefulSetApi } from "../../api/endpoints";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class StatefulSetStore extends KubeObjectStore<StatefulSet> {
@@ -67,4 +66,3 @@ export class StatefulSetStore extends KubeObjectStore<StatefulSet> {
 }
 
 export const statefulSetStore = new StatefulSetStore();
-apiManager.registerStore(statefulSetStore);

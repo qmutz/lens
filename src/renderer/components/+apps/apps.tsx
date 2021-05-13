@@ -22,34 +22,35 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { TabLayout, TabLayoutRoute } from "../layout/tab-layout";
-import { HelmCharts, helmChartsRoute, helmChartsURL } from "../+apps-helm-charts";
-import { HelmReleases, releaseRoute, releaseURL } from "../+apps-releases";
+import { HelmCharts } from "../+apps-helm-charts";
+import { HelmReleases } from "../+apps-releases";
 import { namespaceUrlParam } from "../+namespaces/namespace.store";
+import * as routes from "../../../common/routes";
 
 @observer
 export class Apps extends React.Component {
-  static get tabRoutes(): TabLayoutRoute[] {
+  static tabRoutes(): TabLayoutRoute[] {
     const query = namespaceUrlParam.toObjectParam();
 
     return [
       {
         title: "Charts",
         component: HelmCharts,
-        url: helmChartsURL(),
-        routePath: helmChartsRoute.path.toString(),
+        url: routes.helmChartsURL(),
+        routePath: routes.helmChartsRoute.path.toString(),
       },
       {
         title: "Releases",
         component: HelmReleases,
-        url: releaseURL({ query }),
-        routePath: releaseRoute.path.toString(),
+        url: routes.releaseURL({ query }),
+        routePath: routes.releaseRoute.path.toString(),
       },
     ];
   }
 
   render() {
     return (
-      <TabLayout className="Apps" tabs={Apps.tabRoutes}/>
+      <TabLayout className="Apps" tabs={Apps.tabRoutes()}/>
     );
   }
 }

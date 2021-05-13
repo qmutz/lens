@@ -91,3 +91,35 @@ export interface ClusterPrometheusPreferences {
     type: string;
   };
 }
+
+export enum ClusterStatus {
+  AccessGranted = 2,
+  AccessDenied = 1,
+  Offline = 0
+}
+
+export enum ClusterMetadataKey {
+  VERSION = "version",
+  CLUSTER_ID = "id",
+  DISTRIBUTION = "distribution",
+  NODES_COUNT = "nodes",
+  LAST_SEEN = "lastSeen",
+  PROMETHEUS = "prometheus"
+}
+
+export type ClusterRefreshOptions = {
+  refreshMetadata?: boolean
+};
+
+export interface ClusterState {
+  apiUrl: string;
+  online: boolean;
+  disconnected: boolean;
+  accessible: boolean;
+  ready: boolean;
+  failureReason: string;
+  isAdmin: boolean;
+  allowedNamespaces: string[]
+  allowedResources: string[]
+  isGlobalWatchEnabled: boolean;
+}

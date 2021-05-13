@@ -20,7 +20,7 @@
  */
 
 import type React from "react";
-import { CatalogEntity } from "../../common/catalog";
+import type { CatalogEntity } from "../../common/catalog";
 import { BaseRegistry } from "./base-registry";
 
 export interface EntitySettingViewProps {
@@ -67,5 +67,3 @@ export class EntitySettingRegistry extends BaseRegistry<EntitySettingRegistratio
     return items.sort((a, b) => (b.priority ?? 50) - (a.priority ?? 50));
   }
 }
-
-export const entitySettingRegistry = new EntitySettingRegistry();

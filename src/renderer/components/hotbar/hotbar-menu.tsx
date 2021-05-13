@@ -20,7 +20,6 @@
  */
 
 import "./hotbar-menu.scss";
-import "./hotbar.commands";
 
 import React, { HTMLAttributes, ReactNode, useState } from "react";
 import { observer } from "mobx-react";

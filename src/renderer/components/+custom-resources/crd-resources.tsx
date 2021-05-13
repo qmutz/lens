@@ -24,15 +24,15 @@ import "./crd-resources.scss";
 import React from "react";
 import jsonPath from "jsonpath";
 import { disposeOnUnmount, observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
-import { KubeObjectListLayout } from "../kube-object";
-import { KubeObject } from "../../api/kube-object";
-import { ICRDRouteParams } from "./crd.route";
+import type { RouteComponentProps } from "react-router";
+import { KubeObjectListLayout } from "../kube-object/kube-object-list-layout";
+import type { KubeObject } from "../../api/kube-object";
 import { autorun, computed } from "mobx";
 import { crdStore } from "./crd.store";
-import { TableSortCallback } from "../table";
-import { apiManager } from "../../api/api-manager";
+import type { TableSortCallback } from "../table";
+import { ApiManager } from "../../api/api-manager";
 import { parseJsonPath } from "../../utils/jsonPath";
+import type { ICRDRouteParams } from "../../../common/routes";
 
 interface Props extends RouteComponentProps<ICRDRouteParams> {
 }
@@ -66,7 +66,7 @@ export class CrdResources extends React.Component<Props> {
   @computed get store() {
     if (!this.crd) return null;
 
-    return apiManager.getStore(this.crd.getResourceApiBase());
+    return ApiManager.getInstance().getStore(this.crd.getResourceApiBase());
   }
 
   render() {

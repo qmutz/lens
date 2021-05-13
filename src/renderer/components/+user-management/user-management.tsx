@@ -26,61 +26,62 @@ import { TabLayout, TabLayoutRoute } from "../layout/tab-layout";
 import { Roles } from "../+user-management-roles";
 import { RoleBindings } from "../+user-management-roles-bindings";
 import { ServiceAccounts } from "../+user-management-service-accounts";
-import { podSecurityPoliciesRoute, podSecurityPoliciesURL, roleBindingsRoute, roleBindingsURL, rolesRoute, rolesURL, serviceAccountsRoute, serviceAccountsURL } from "./user-management.route";
+import * as userManagement from "../../../common/routes/user-management";
 import { namespaceUrlParam } from "../+namespaces/namespace.store";
 import { PodSecurityPolicies } from "../+pod-security-policies";
-import { isAllowedResource } from "../../../common/rbac";
+import type { Cluster } from "../../../main/cluster";
+import { getHostedCluster } from "../../../common/cluster-store";
 
 @observer
 export class UserManagement extends React.Component {
-  static get tabRoutes() {
+  static tabRoutes(cluster: Cluster): TabLayoutRoute[] {
     const query = namespaceUrlParam.toObjectParam();
-    const tabRoutes: TabLayoutRoute[] = [];
+    const tabs: TabLayoutRoute[] = [];
 
-    if (isAllowedResource("serviceaccounts")) {
-      tabRoutes.push({
+    if (cluster.isAllAllowedResource("serviceaccounts")) {
+      tabs.push({
         title: "Service Accounts",
         component: ServiceAccounts,
-        url: serviceAccountsURL({ query }),
-        routePath: serviceAccountsRoute.path.toString(),
+        url: userManagement.serviceAccountsURL({ query }),
+        routePath: userManagement.serviceAccountsRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("rolebindings") || isAllowedResource("clusterrolebindings")) {
+    if (cluster.isAnyAllowedResource("rolebindings", "clusterrolebindings")) {
       // TODO: seperate out these two pages
-      tabRoutes.push({
+      tabs.push({
         title: "Role Bindings",
         component: RoleBindings,
-        url: roleBindingsURL({ query }),
-        routePath: roleBindingsRoute.path.toString(),
+        url: userManagement.roleBindingsURL({ query }),
+        routePath: userManagement.roleBindingsRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("roles") || isAllowedResource("clusterroles")) {
+    if (cluster.isAnyAllowedResource("roles", "clusterroles")) {
       // TODO: seperate out these two pages
-      tabRoutes.push({
+      tabs.push({
         title: "Roles",
         component: Roles,
-        url: rolesURL({ query }),
-        routePath: rolesRoute.path.toString(),
+        url: userManagement.rolesURL({ query }),
+        routePath: userManagement.rolesRoute.path.toString(),
       });
     }
 
-    if (isAllowedResource("podsecuritypolicies")) {
-      tabRoutes.push({
+    if (cluster.isAllAllowedResource("podsecuritypolicies")) {
+      tabs.push({
         title: "Pod Security Policies",
         component: PodSecurityPolicies,
-        url: podSecurityPoliciesURL(),
-        routePath: podSecurityPoliciesRoute.path.toString(),
+        url: userManagement.podSecurityPoliciesURL(),
+        routePath: userManagement.podSecurityPoliciesRoute.path.toString(),
       });
     }
 
-    return tabRoutes;
+    return tabs;
   }
 
   render() {
     return (
-      <TabLayout className="UserManagement" tabs={UserManagement.tabRoutes}/>
+      <TabLayout className="UserManagement" tabs={UserManagement.tabRoutes(getHostedCluster())}/>
     );
   }
 }

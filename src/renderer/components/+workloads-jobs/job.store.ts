@@ -24,7 +24,6 @@ import { autobind } from "../../utils";
 import { Job, jobApi } from "../../api/endpoints/job.api";
 import { CronJob, Pod, PodStatus } from "../../api/endpoints";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class JobStore extends KubeObjectStore<Job> {
@@ -66,4 +65,3 @@ export class JobStore extends KubeObjectStore<Job> {
 }
 
 export const jobStore = new JobStore();
-apiManager.registerStore(jobStore);

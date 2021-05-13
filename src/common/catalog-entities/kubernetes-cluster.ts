@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { CatalogEntity, CatalogEntityMetadata, CatalogEntityStatus } from "../catalog";
-import { ActionContext, ContextMenu, MenuContext } from "../catalog/catalog-entity";
+import type { ActionContext, ContextMenu, MenuContext } from "../catalog/catalog-entity";
 import { disconnect } from "../cluster-ipc";
 import { ClusterStore } from "../cluster-store";
 import { requestMain } from "../ipc";

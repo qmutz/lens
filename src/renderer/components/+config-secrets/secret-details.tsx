@@ -32,10 +32,9 @@ import { Notifications } from "../notifications";
 import { base64 } from "../../utils";
 import { Icon } from "../icon";
 import { secretsStore } from "./secrets.store";
-import { KubeObjectDetailsProps } from "../kube-object";
-import { Secret } from "../../api/endpoints";
+import type { KubeObjectDetailsProps } from "../kube-object";
+import type { Secret } from "../../api/endpoints";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
 
 interface Props extends KubeObjectDetailsProps<Secret> {
 }
@@ -138,11 +137,3 @@ export class SecretDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "Secret",
-  apiVersions: ["v1"],
-  components: {
-    Details: (props) => <SecretDetails {...props} />
-  }
-});

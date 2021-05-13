@@ -21,9 +21,10 @@
 
 // Base class for extensions-api registries
 import { action, observable } from "mobx";
+import { Singleton } from "../core-api/utils";
 import { LensExtension } from "../lens-extension";
 
-export class BaseRegistry<T, I = T> {
+export class BaseRegistry<T, I = T> extends Singleton {
   private items = observable.map<T, I>();
 
   getItems(): I[] {
@@ -31,14 +32,21 @@ export class BaseRegistry<T, I = T> {
   }
 
   @action
-  add(items: T | T[], extension?: LensExtension) {
-    const itemArray = [items].flat() as T[];
-
-    itemArray.forEach(item => {
+  addForExtension(extension: LensExtension, ...items: T[]) {
+    for (const item of items) {
       this.items.set(item, this.getRegisteredItem(item, extension));
-    });
+    }
 
-    return () => this.remove(...itemArray);
+    return () => this.remove(...items);
+  }
+
+  @action
+  add(...items: T[]) {
+    for (const item of items) {
+      this.items.set(item, this.getRegisteredItem(item));
+    }
+
+    return () => this.remove(...items);
   }
 
   // eslint-disable-next-line unused-imports/no-unused-vars-ts

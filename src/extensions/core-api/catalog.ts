@@ -34,7 +34,7 @@ import {
   EntityContextHandlers,
   GlobalContextHandlers,
 } from "../../common/catalog/catalog-category-registry";
-import { Disposer } from "../../common/utils";
+import type { Disposer } from "../../common/utils";
 
 export * from "../../common/catalog-entities";
 

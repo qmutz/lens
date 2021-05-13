@@ -23,13 +23,13 @@ import "./roles.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { RouteComponentProps } from "react-router";
-import { IRolesRouteParams } from "../+user-management/user-management.route";
+import type { RouteComponentProps } from "react-router";
 import { rolesStore } from "./roles.store";
-import { Role } from "../../api/endpoints";
+import type { Role } from "../../api/endpoints";
 import { KubeObjectListLayout } from "../kube-object";
 import { AddRoleDialog } from "./add-role-dialog";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
+import type { IRolesRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",

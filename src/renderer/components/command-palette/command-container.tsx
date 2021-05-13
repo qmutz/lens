@@ -25,26 +25,10 @@ import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
 import { Dialog } from "../dialog";
-import { EventEmitter } from "../../../common/event-emitter";
 import { subscribeToBroadcast } from "../../../common/ipc";
 import { CommandDialog } from "./command-dialog";
-import { CommandRegistration, commandRegistry } from "../../../extensions/registries/command-registry";
-
-export type CommandDialogEvent = {
-  component: React.ReactElement
-};
-
-const commandDialogBus = new EventEmitter<[CommandDialogEvent]>();
-
-export class CommandOverlay {
-  static open(component: React.ReactElement) {
-    commandDialogBus.emit({ component });
-  }
-
-  static close() {
-    commandDialogBus.emit({ component: null });
-  }
-}
+import { CommandRegistration, CommandRegistry } from "../../../extensions/registries/command-registry";
+import { CommandOverlay } from "./command-overlay";
 
 @observer
 export class CommandContainer extends React.Component<{ clusterId?: string }> {
@@ -63,12 +47,12 @@ export class CommandContainer extends React.Component<{ clusterId?: string }> {
   }
 
   private findCommandById(commandId: string) {
-    return commandRegistry.getItems().find((command) => command.id === commandId);
+    return CommandRegistry.getInstance().getItems().find((command) => command.id === commandId);
   }
 
   private runCommand(command: CommandRegistration) {
     command.action({
-      entity: commandRegistry.activeEntity
+      entity: CommandRegistry.getInstance().activeEntity
     });
   }
 
@@ -87,7 +71,7 @@ export class CommandContainer extends React.Component<{ clusterId?: string }> {
       });
     }
     window.addEventListener("keyup", (e) => this.escHandler(e), true);
-    commandDialogBus.addListener((event) => {
+    CommandOverlay.on((event) => {
       this.commandComponent = event.component;
     });
   }

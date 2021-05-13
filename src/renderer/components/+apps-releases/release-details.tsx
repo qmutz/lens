@@ -41,12 +41,12 @@ import { releaseStore } from "./release.store";
 import { Notifications } from "../notifications";
 import { createUpgradeChartTab } from "../dock/upgrade-chart.store";
 import { ThemeStore } from "../../theme.store";
-import { apiManager } from "../../api/api-manager";
+import { ApiManager } from "../../api/api-manager";
 import { SubTitle } from "../layout/sub-title";
 import { secretsStore } from "../+config-secrets/secrets.store";
 import { Secret } from "../../api/endpoints";
-import { getDetailsUrl } from "../kube-object";
 import { Checkbox } from "../checkbox";
+import { getDetailsUrl } from "../kube-object/utils";
 
 interface Props {
   release: HelmRelease;
@@ -197,7 +197,7 @@ export class ReleaseDetails extends Component<Props> {
             {items.map(item => {
               const name = item.getName();
               const namespace = item.getNs();
-              const api = apiManager.getApi(item.metadata.selfLink);
+              const api = ApiManager.getInstance().getApi(item.metadata.selfLink);
               const detailsUrl = api ? getDetailsUrl(api.getUrl({ name, namespace })) : "";
 
               return (

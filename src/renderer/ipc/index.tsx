@@ -22,16 +22,16 @@
 import React from "react";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { areArgsUpdateAvailableFromMain, UpdateAvailableChannel, onCorrect, UpdateAvailableFromMain, BackchannelArg, ClusterListNamespaceForbiddenChannel, isListNamespaceForbiddenArgs, ListNamespaceForbiddenArgs } from "../../common/ipc";
-import { Notifications, notificationsStore } from "../components/notifications";
+import { Notifications } from "../components/notifications";
 import { Button } from "../components/button";
 import { isMac } from "../../common/vars";
 import { invalidKubeconfigHandler } from "./invalid-kubeconfig-handler";
 import { ClusterStore } from "../../common/cluster-store";
 import { navigate } from "../navigation";
-import { entitySettingsURL } from "../components/+entity-settings";
+import { entitySettingsURL } from "../../common/routes";
 
 function sendToBackchannel(backchannel: string, notificationId: string, data: BackchannelArg): void {
-  notificationsStore.remove(notificationId);
+  Notifications.getInstance().remove(notificationId);
   ipcRenderer.send(backchannel, data);
 }
 
@@ -101,7 +101,7 @@ function ListNamespacesForbiddenHandler(event: IpcRendererEvent, ...[clusterId]:
         <div className="flex gaps row align-left box grow">
           <Button active outlined label="Go to Accessible Namespaces Settings" onClick={()=> {
             navigate(entitySettingsURL({ params: { entityId: clusterId }, fragment: "accessible-namespaces" }));
-            notificationsStore.remove(notificationId);
+            Notifications.getInstance().remove(notificationId);
           }} />
         </div>
       </div>

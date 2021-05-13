@@ -25,12 +25,12 @@ import merge from "lodash/merge";
 import { stringify } from "querystring";
 import { apiKubePrefix, isDevelopment, isTestEnv } from "../../common/vars";
 import logger from "../../main/logger";
-import { apiManager } from "./api-manager";
+import { ApiManager } from "./api-manager";
 import { apiKube } from "./index";
 import { createKubeApiURL, parseKubeApi } from "./kube-api-parse";
 import { IKubeObjectConstructor, KubeObject, KubeStatus } from "./kube-object";
 import byline from "byline";
-import { IKubeWatchEvent } from "./kube-watch-api";
+import type { IKubeWatchEvent } from "./kube-watch-api";
 import { ReadableWebToNodeStream } from "../utils/readableStream";
 import { KubeJsonApi, KubeJsonApiData } from "./kube-json-api";
 import { noop } from "../utils";
@@ -175,7 +175,7 @@ export class KubeApi<T extends KubeObject = any> {
 
     this.checkPreferredVersion();
     this.parseResponse = this.parseResponse.bind(this);
-    apiManager.registerApi(apiBase, this);
+    ApiManager.getInstance().registerApi(apiBase, this);
   }
 
   get apiVersionWithGroup() {
@@ -264,7 +264,7 @@ export class KubeApi<T extends KubeObject = any> {
 
       if (this.apiVersionPreferred) {
         Object.defineProperty(this, "apiBase", { value: this.getUrl() });
-        apiManager.registerApi(this.apiBase, this);
+        ApiManager.getInstance().registerApi(this.apiBase, this);
       }
     }
   }
@@ -306,7 +306,7 @@ export class KubeApi<T extends KubeObject = any> {
   }
 
   protected parseResponse(data: unknown, namespace?: string): T | T[] | null {
-    if (!data) return;
+    if (!data) return null;
     const KubeObjectConstructor = this.objectConstructor;
 
     // process items list response, check before single item since there is overlap
@@ -506,5 +506,3 @@ export class KubeApi<T extends KubeObject = any> {
     }
   }
 }
-
-export * from "./kube-api-parse";

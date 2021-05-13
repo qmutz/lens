@@ -23,10 +23,10 @@ import "./bottom-bar.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { StatusBarRegistration, statusBarRegistry } from "../../../extensions/registries";
+import { StatusBarRegistration, StatusBarRegistry } from "../../../extensions/registries";
 import { navigate } from "../../navigation";
-import { catalogURL } from "../+catalog";
 import { Icon } from "../icon";
+import { catalogURL } from "../../../common/routes";
 
 @observer
 export class BottomBar extends React.Component {
@@ -41,17 +41,17 @@ export class BottomBar extends React.Component {
   }
 
   renderRegisteredItems() {
-    const items = statusBarRegistry.getItems();
+    const items = StatusBarRegistry.getInstance().getItems();
 
-    if (!Array.isArray(items)) {
-      return;
+    if (items.length === 0) {
+      return null;
     }
 
     return (
       <div className="extensions box grow flex gaps justify-flex-end">
         {items.map((registration, index) => {
           if (!registration?.item && !registration?.components?.Item) {
-            return;
+            return null;
           }
 
           return (

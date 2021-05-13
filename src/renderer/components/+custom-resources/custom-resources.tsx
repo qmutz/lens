@@ -23,21 +23,26 @@ import React from "react";
 import { observer } from "mobx-react";
 import { Redirect, Route, Switch } from "react-router";
 import { TabLayout, TabLayoutRoute } from "../layout/tab-layout";
-import { crdDefinitionsRoute, crdResourcesRoute, crdURL } from "./crd.route";
 import { CrdList } from "./crd-list";
 import { CrdResources } from "./crd-resources";
+import { crdDefinitionsRoute, crdResourcesRoute, crdURL } from "../../../common/routes";
+import type { Cluster } from "../../../main/cluster";
 
 @observer
 export class CustomResources extends React.Component {
-  static get tabRoutes(): TabLayoutRoute[] {
-    return [
-      {
+  static tabRoutes(cluster: Cluster): TabLayoutRoute[] {
+    const tabs: TabLayoutRoute[] = [];
+
+    if (cluster.isAllAllowedResource("customresourcedefinitions")) {
+      tabs.push({
         title: "Definitions",
         component: CustomResources,
         url: crdURL(),
         routePath: String(crdDefinitionsRoute.path),
-      }
-    ];
+      });
+    }
+
+    return tabs;
   }
 
   render() {

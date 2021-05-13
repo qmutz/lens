@@ -39,8 +39,8 @@ import { rolesStore } from "../+user-management-roles/roles.store";
 import { namespaceStore } from "../+namespaces/namespace.store";
 import { serviceAccountsStore } from "../+user-management-service-accounts/service-accounts.store";
 import { roleBindingsStore } from "./role-bindings.store";
-import { showDetails } from "../kube-object";
-import { KubeObjectStore } from "../../kube-object.store";
+import { toggleDetails } from "../kube-object/utils";
+import type { KubeObjectStore } from "../../kube-object.store";
 
 interface BindingSelectOption extends SelectOption {
   value: string; // binding name
@@ -169,7 +169,7 @@ export class AddRoleBindingDialog extends React.Component<Props> {
           }
         });
       }
-      showDetails(roleBinding.selfLink);
+      toggleDetails(roleBinding.selfLink);
       this.close();
     } catch (err) {
       Notifications.error(err);

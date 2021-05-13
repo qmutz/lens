@@ -18,16 +18,17 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { KubeConfig } from "@kubernetes/client-node";
+import type { KubeConfig } from "@kubernetes/client-node";
 import { watch } from "chokidar";
 import fs from "fs";
 import fse from "fs-extra";
 import { action, computed, observable, ObservableMap, runInAction } from "mobx";
-import stream from "stream";
+import type stream from "stream";
 
 import { CatalogEntityRegistry } from "../../common/catalog";
 import { KubernetesCluster } from "../../common/catalog-entities";
-import { ClusterStore, UpdateClusterModel } from "../../common/cluster-store";
+import { ClusterStore } from "../../common/cluster-store";
+import type { UpdateClusterModel } from "../../common/cluster-types";
 import { loadConfigFromString, splitConfig, validateKubeConfig } from "../../common/kube-helpers";
 import { UserStore } from "../../common/user-store";
 import { Disposer, ExtendedObservableMap, iter, Singleton } from "../../common/utils";

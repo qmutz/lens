@@ -19,14 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { KubeObject } from "../../api/kube-object";
+import type { KubeObject } from "../../api/kube-object";
 import { observer } from "mobx-react";
 import React from "react";
 import { Table, TableHead, TableCell, TableRow } from "../table";
 import { prevDefault } from "../../utils";
 import { endpointStore } from "../+network-endpoints/endpoints.store";
 import { Spinner } from "../spinner";
-import { showDetails } from "../kube-object";
+import { toggleDetails } from "../kube-object/utils";
 
 interface Props {
   endpoint: KubeObject;
@@ -60,7 +60,7 @@ export class ServiceDetailsEndpoint extends React.Component<Props> {
           <TableRow
             key={endpoint.getId()}
             nowrap
-            onClick={prevDefault(() => showDetails(endpoint.selfLink, false))}
+            onClick={prevDefault(() => toggleDetails(endpoint.selfLink, false))}
           >
             <TableCell className="name">{endpoint.getName()}</TableCell>
             <TableCell className="endpoints">{ endpoint.toString()}</TableCell>

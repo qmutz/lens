@@ -24,6 +24,8 @@ import { ipcRenderer } from "electron";
 import { ExtensionsStore } from "../extensions-store";
 import { Console } from "console";
 import { stdout, stderr } from "process";
+import { initCommandRegistry } from "../../renderer/initializers/command-registry";
+import { initExtensionRegistries } from "../../common/initializers/extension-registries";
 
 console = new Console(stdout, stderr);
 
@@ -77,6 +79,8 @@ jest.mock(
             ],
           ];
         }
+
+        return [];
       }),
       on: jest.fn(
         (channel: string, listener: (event: any, ...args: any[]) => void) => {
@@ -128,10 +132,15 @@ jest.mock(
 describe("ExtensionLoader", () => {
   beforeEach(() => {
     ExtensionLoader.resetInstance();
+
+    initCommandRegistry();
+    initExtensionRegistries();
+
+    ExtensionLoader.createInstance();
   });
 
-  it.only("renderer updates extension after ipc broadcast", async (done) => {
-    const extensionLoader = ExtensionLoader.createInstance();
+  it("renderer updates extension after ipc broadcast", async (done) => {
+    const extensionLoader = ExtensionLoader.getInstance();
 
     expect(extensionLoader.userExtensions).toMatchInlineSnapshot(`Map {}`);
 
@@ -170,13 +179,13 @@ describe("ExtensionLoader", () => {
     }, 10);
   });
 
-  it("updates ExtensionsStore after isEnabled is changed", async () => {
+  it.skip("updates ExtensionsStore after isEnabled is changed", async () => {
     (ExtensionsStore.getInstance().mergeState as any).mockClear();
 
     // Disable sending events in this test
     (ipcRenderer.on as any).mockImplementation();
 
-    const extensionLoader = ExtensionLoader.createInstance();
+    const extensionLoader = ExtensionLoader.getInstance();
 
     await extensionLoader.init();
 

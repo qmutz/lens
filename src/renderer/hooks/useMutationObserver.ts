@@ -20,6 +20,7 @@
  */
 
 import { useEffect } from "react";
+import { noop } from "../utils";
 
 const config: MutationObserverInit = {
   subtree: true,
@@ -44,5 +45,7 @@ export function useMutationObserver(
         observer.disconnect();
       };
     }
+
+    return noop;
   }, [callback, options]);
 }

@@ -199,7 +199,7 @@ async function createTempFilesAndValidate({ fileName, dataP }: InstallRequest): 
     const data = await dataP;
 
     if (!data) {
-      return;
+      return null;
     }
 
     await fse.writeFile(tempFile, data);
@@ -349,7 +349,7 @@ async function attemptInstall(request: InstallRequest, d?: ExtendableDisposer): 
   if (curState !== ExtensionInstallationState.IDLE) {
     dispose();
 
-    return Notifications.error(
+    return void Notifications.error(
       <div className="flex column gaps">
         <b>Extension Install Collision:</b>
         <p>The <em>{name}</em> extension is currently {curState.toLowerCase()}.</p>

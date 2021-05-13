@@ -23,9 +23,8 @@
 import type { IconProps } from "../../renderer/components/icon";
 import type React from "react";
 import type { PageTarget, RegisteredPage } from "./page-registry";
-import { action } from "mobx";
 import { BaseRegistry } from "./base-registry";
-import { LensExtension } from "../lens-extension";
+import type { LensExtension } from "../lens-extension";
 
 export interface PageMenuRegistration {
   target?: PageTarget;
@@ -43,18 +42,13 @@ export interface PageMenuComponents {
 }
 
 export class PageMenuRegistry<T extends PageMenuRegistration> extends BaseRegistry<T> {
-  @action
-  add(items: T[], ext: LensExtension) {
-    const normalizedItems = items.map(menuItem => {
-      menuItem.target = {
-        extensionId: ext.name,
-        ...(menuItem.target || {}),
-      };
+  protected getRegisteredItem(item: T, extension: LensExtension) {
+    item.target = {
+      extensionId: extension.name,
+      ...(item.target ?? {}),
+    };
 
-      return menuItem;
-    });
-
-    return super.add(normalizedItems);
+    return item;
   }
 }
 
@@ -77,5 +71,3 @@ export class ClusterPageMenuRegistry extends PageMenuRegistry<ClusterPageMenuReg
     ));
   }
 }
-
-export const clusterPageMenuRegistry = new ClusterPageMenuRegistry();

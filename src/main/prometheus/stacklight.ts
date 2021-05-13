@@ -19,8 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PrometheusProvider, PrometheusQueryOpts, PrometheusQuery, PrometheusService } from "./provider-registry";
-import { CoreV1Api } from "@kubernetes/client-node";
+import type { PrometheusProvider, PrometheusQueryOpts, PrometheusQuery, PrometheusService } from "./provider-registry";
+import type { CoreV1Api } from "@kubernetes/client-node";
 import logger from "../logger";
 
 export class PrometheusStacklight implements PrometheusProvider {
@@ -28,7 +28,7 @@ export class PrometheusStacklight implements PrometheusProvider {
   name = "Stacklight";
   rateAccuracy = "1m";
 
-  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService> {
+  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService | null> {
     try {
       const resp = await client.readNamespacedService("prometheus-server", "stacklight");
       const service = resp.body;
@@ -41,10 +41,12 @@ export class PrometheusStacklight implements PrometheusProvider {
       };
     } catch(error) {
       logger.warn(`PrometheusLens: failed to list services: ${error.response.body.message}`);
+
+      return null;
     }
   }
 
-  public getQueries(opts: PrometheusQueryOpts): PrometheusQuery {
+  public getQueries(opts: PrometheusQueryOpts): PrometheusQuery | undefined {
     switch(opts.category) {
       case "cluster":
         return {
@@ -102,5 +104,7 @@ export class PrometheusStacklight implements PrometheusProvider {
           responseDurationSeconds: `sum(rate(nginx_ingress_controller_response_duration_seconds_sum{ingress="${opts.ingress}"}[${this.rateAccuracy}])) by (ingress)`
         };
     }
+
+    return undefined;
   }
 }

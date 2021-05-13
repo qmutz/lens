@@ -23,15 +23,15 @@ import "./entity-settings.scss";
 
 import React from "react";
 import { observable } from "mobx";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { observer } from "mobx-react";
 import { PageLayout } from "../layout/page-layout";
 import { navigation } from "../../navigation";
 import { Tabs, Tab } from "../tabs";
-import { CatalogEntity } from "../../api/catalog-entity";
+import type { CatalogEntity } from "../../api/catalog-entity";
 import { CatalogEntityRegistry } from "../../api/catalog-entity-registry";
-import { entitySettingRegistry } from "../../../extensions/registries";
-import { EntitySettingsRouteParams } from "./entity-settings.route";
+import { EntitySettingRegistry } from "../../../extensions/registries";
+import type { EntitySettingsRouteParams } from "../../../common/routes/entity-settings";
 
 interface Props extends RouteComponentProps<EntitySettingsRouteParams> {
 }
@@ -51,7 +51,7 @@ export class EntitySettings extends React.Component<Props> {
   get menuItems() {
     if (!this.entity) return [];
 
-    return entitySettingRegistry.getItemsForKind(this.entity.kind, this.entity.apiVersion, this.entity.metadata.source);
+    return EntitySettingRegistry.getInstance().getItemsForKind(this.entity.kind, this.entity.apiVersion, this.entity.metadata.source);
   }
 
   async componentDidMount() {

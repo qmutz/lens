@@ -30,14 +30,12 @@ import { Badge } from "../badge";
 import { nodesStore } from "./nodes.store";
 import { ResourceMetrics } from "../resource-metrics";
 import { podsStore } from "../+workloads-pods/pods.store";
-import { KubeObjectDetailsProps } from "../kube-object";
-import { Node } from "../../api/endpoints";
+import type { KubeObjectDetailsProps } from "../kube-object";
+import type { Node } from "../../api/endpoints";
 import { NodeCharts } from "./node-charts";
 import { reaction } from "mobx";
 import { PodDetailsList } from "../+workloads-pods/pod-details-list";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { KubeEventDetails } from "../+events/kube-event-details";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
 import { ResourceType } from "../cluster-settings/components/cluster-metrics-setting";
 import { ClusterStore } from "../../../common/cluster-store";
 
@@ -62,7 +60,10 @@ export class NodeDetails extends React.Component<Props> {
   render() {
     const { object: node } = this.props;
 
-    if (!node) return;
+    if (!node) {
+      return null;
+    }
+
     const { status } = node;
     const { nodeInfo, addresses, capacity, allocatable } = status;
     const conditions = node.getActiveConditions();
@@ -177,20 +178,3 @@ export class NodeDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "Node",
-  apiVersions: ["v1"],
-  components: {
-    Details: (props) => <NodeDetails {...props} />
-  }
-});
-
-kubeObjectDetailRegistry.add({
-  kind: "Node",
-  apiVersions: ["v1"],
-  priority: 5,
-  components: {
-    Details: (props) => <KubeEventDetails {...props} />
-  }
-});

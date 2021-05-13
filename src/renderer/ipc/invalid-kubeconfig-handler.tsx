@@ -23,7 +23,7 @@ import React from "react";
 import { ipcRenderer, IpcRendererEvent, shell } from "electron";
 import { ClusterStore } from "../../common/cluster-store";
 import { InvalidKubeConfigArgs, InvalidKubeconfigChannel } from "../../common/ipc/invalid-kubeconfig";
-import { Notifications, notificationsStore } from "../components/notifications";
+import { Notifications } from "../components/notifications";
 import { Button } from "../components/button";
 import { productName } from "../../common/vars";
 
@@ -52,9 +52,9 @@ function InvalidKubeconfigListener(event: IpcRendererEvent, ...[clusterId]: Inva
         <div className="flex gaps row align-left box grow">
           <Button active outlined label="Remove" onClick={()=> {
             ClusterStore.getInstance().removeById(clusterId);
-            notificationsStore.remove(notificationId);
+            Notifications.getInstance().remove(notificationId);
           }} />
-          <Button active outlined label="Cancel" onClick={() => notificationsStore.remove(notificationId)} />
+          <Button active outlined label="Cancel" onClick={() => Notifications.getInstance().remove(notificationId)} />
         </div>
       </div>
     ),

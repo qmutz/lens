@@ -20,7 +20,9 @@
  */
 
 import { observable, when } from "mobx";
-import { ClusterId, ClusterStore, getClusterFrameUrl } from "../../../common/cluster-store";
+import { getClusterFrameUrl } from "../../../common/cluster-helpers";
+import { ClusterStore } from "../../../common/cluster-store";
+import type { ClusterId } from "../../../common/cluster-types";
 import logger from "../../../main/logger";
 
 export interface LensView {

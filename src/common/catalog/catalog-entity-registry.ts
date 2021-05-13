@@ -20,7 +20,7 @@
  */
 
 import { action, computed, observable, IComputedValue, IObservableArray } from "mobx";
-import { CatalogEntity, CatalogEntityData, CatalogEntityKindData } from "./catalog-entity";
+import type { CatalogEntity, CatalogEntityData, CatalogEntityKindData } from "./catalog-entity";
 import { cloneJsonObject, iter, Singleton } from "../utils";
 
 export class CatalogEntityRegistry extends Singleton {

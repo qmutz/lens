@@ -26,14 +26,14 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import { DrawerItem } from "../drawer";
 import { cssNames } from "../../utils";
-import { Namespace } from "../../api/endpoints";
-import { getDetailsUrl, KubeObjectDetailsProps } from "../kube-object";
+import type { Namespace } from "../../api/endpoints";
+import type { KubeObjectDetailsProps } from "../kube-object";
 import { Link } from "react-router-dom";
 import { Spinner } from "../spinner";
 import { resourceQuotaStore } from "../+config-resource-quotas/resource-quotas.store";
 import { KubeObjectMeta } from "../kube-object/kube-object-meta";
-import { kubeObjectDetailRegistry } from "../../api/kube-object-detail-registry";
 import { limitRangeStore } from "../+config-limit-ranges/limit-ranges.store";
+import { getDetailsUrl } from "../kube-object/utils";
 
 interface Props extends KubeObjectDetailsProps<Namespace> {
 }
@@ -60,7 +60,10 @@ export class NamespaceDetails extends React.Component<Props> {
   render() {
     const { object: namespace } = this.props;
 
-    if (!namespace) return;
+    if (!namespace) {
+      return null;
+    }
+
     const status = namespace.getStatus();
 
     return (
@@ -95,11 +98,3 @@ export class NamespaceDetails extends React.Component<Props> {
     );
   }
 }
-
-kubeObjectDetailRegistry.add({
-  kind: "Namespace",
-  apiVersions: ["v1"],
-  components: {
-    Details: (props) => <NamespaceDetails {...props} />
-  }
-});

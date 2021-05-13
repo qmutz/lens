@@ -23,7 +23,7 @@ import { action, autorun } from "mobx";
 import { dockStore, IDockTab, TabId, TabKind } from "./dock.store";
 import { DockTabStore } from "./dock-tab.store";
 import { getChartDetails, getChartValues, HelmChart } from "../../api/endpoints/helm-charts.api";
-import { IReleaseUpdateDetails } from "../../api/endpoints/helm-releases.api";
+import type { IReleaseUpdateDetails } from "../../api/endpoints/helm-releases.api";
 import { Notifications } from "../notifications";
 
 export interface IChartInstallData {

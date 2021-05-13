@@ -22,7 +22,6 @@
 import { KubeObjectStore } from "../../kube-object.store";
 import { autobind } from "../../utils";
 import { StorageClass, storageClassApi } from "../../api/endpoints/storage-class.api";
-import { apiManager } from "../../api/api-manager";
 import { volumesStore } from "../+storage-volumes/volumes.store";
 
 @autobind()
@@ -35,4 +34,3 @@ export class StorageClassStore extends KubeObjectStore<StorageClass> {
 }
 
 export const storageClassStore = new StorageClassStore();
-apiManager.registerStore(storageClassStore);

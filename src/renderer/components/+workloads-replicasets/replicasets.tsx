@@ -23,17 +23,16 @@ import "./replicasets.scss";
 
 import React from "react";
 import { observer } from "mobx-react";
-import { ReplicaSet } from "../../api/endpoints";
-import { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
+import type { ReplicaSet } from "../../api/endpoints";
+import type { KubeObjectMenuProps } from "../kube-object/kube-object-menu";
 import { replicaSetStore } from "./replicasets.store";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
-import { RouteComponentProps } from "react-router";
-import { IReplicaSetsRouteParams } from "../+workloads/workloads.route";
+import type { RouteComponentProps } from "react-router";
 import { KubeObjectListLayout } from "../kube-object/kube-object-list-layout";
 import { MenuItem } from "../menu/menu";
 import { Icon } from "../icon/icon";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
 import { ReplicaSetScaleDialog } from "./replicaset-scale-dialog";
+import type { IReplicaSetsRouteParams } from "../../../common/routes";
 
 enum columnId {
   name = "name",
@@ -105,11 +104,3 @@ export function ReplicaSetMenu(props: KubeObjectMenuProps<ReplicaSet>) {
     </>
   );
 }
-
-kubeObjectMenuRegistry.add({
-  kind: "ReplicaSet",
-  apiVersions: ["apps/v1"],
-  components: {
-    MenuItem: ReplicaSetMenu
-  }
-});

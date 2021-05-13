@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { CoreV1Api } from "@kubernetes/client-node";
+import type { CoreV1Api } from "@kubernetes/client-node";
 
 export type PrometheusClusterQuery = {
   memoryUsage: string;

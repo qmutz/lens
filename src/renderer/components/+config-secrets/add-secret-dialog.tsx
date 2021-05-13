@@ -33,11 +33,11 @@ import { SubTitle } from "../layout/sub-title";
 import { NamespaceSelect } from "../+namespaces/namespace-select";
 import { Select, SelectOption } from "../select";
 import { Icon } from "../icon";
-import { IKubeObjectMetadata } from "../../api/kube-object";
+import type { IKubeObjectMetadata } from "../../api/kube-object";
 import { base64 } from "../../utils";
 import { Notifications } from "../notifications";
 import upperFirst from "lodash/upperFirst";
-import { showDetails } from "../kube-object";
+import { toggleDetails } from "../kube-object/utils";
 
 interface Props extends Partial<DialogProps> {
 }
@@ -126,7 +126,7 @@ export class AddSecretDialog extends React.Component<Props> {
     try {
       const newSecret = await secretsApi.create({ namespace, name }, secret);
 
-      showDetails(newSecret.selfLink);
+      toggleDetails(newSecret.selfLink);
       this.close();
     } catch (err) {
       Notifications.error(err);

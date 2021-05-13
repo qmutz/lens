@@ -21,19 +21,16 @@
 import { app, BrowserWindow, dialog, shell, webContents } from "electron";
 import windowStateKeeper from "electron-window-state";
 import { observable } from "mobx";
+import type { ClusterId } from "../common/cluster-types";
 
 import { appEventBus } from "../common/event-bus";
 import { subscribeToBroadcast } from "../common/ipc";
 import { Singleton } from "../common/utils";
 import { productName } from "../common/vars";
 import { IpcRendererNavigationEvents } from "../renderer/navigation/events";
-import { ClusterManager } from "./cluster-manager";
+import { ClusterFrameManager } from "./cluster-frame-manager";
 import logger from "./logger";
-import { initMenu } from "./menu";
 import { LensProxy } from "./proxy/lens-proxy";
-import { initTray } from "./tray";
-
-import type { ClusterId } from "../common/cluster-store";
 
 export class WindowManager extends Singleton {
   protected mainWindow: BrowserWindow;
@@ -45,9 +42,9 @@ export class WindowManager extends Singleton {
 
   constructor() {
     super();
-    this.bindEvents();
-    this.initMenu();
-    this.initTray();
+    subscribeToBroadcast(IpcRendererNavigationEvents.CLUSTER_VIEW_CURRENT_ID, (event, clusterId: ClusterId) => {
+      this.activeClusterId = clusterId;
+    });
   }
 
   get mainUrl() {
@@ -131,21 +128,6 @@ export class WindowManager extends Singleton {
     }
   }
 
-  protected async initMenu() {
-    this.disposers.menuAutoUpdater = initMenu(this);
-  }
-
-  protected initTray() {
-    this.disposers.trayAutoUpdater = initTray(this);
-  }
-
-  protected bindEvents() {
-    // track visible cluster from ui
-    subscribeToBroadcast(IpcRendererNavigationEvents.CLUSTER_VIEW_CURRENT_ID, (event, clusterId: ClusterId) => {
-      this.activeClusterId = clusterId;
-    });
-  }
-
   async ensureMainWindow(): Promise<BrowserWindow> {
     if (!this.mainWindow) await this.initMainWindow();
     this.mainWindow.show();
@@ -157,7 +139,7 @@ export class WindowManager extends Singleton {
     await this.ensureMainWindow();
 
     if (frameId === undefined) {
-      const processId = ClusterManager.getInstance().getFrameProcessIdById(frameId);
+      const processId = ClusterFrameManager.getInstance().getFrameProcessIdById(frameId);
 
       this.mainWindow.webContents.sendToFrame(
         [processId, frameId],
@@ -173,7 +155,7 @@ export class WindowManager extends Singleton {
   }
 
   reload() {
-    const frameInfo = ClusterManager.getInstance().getFrameInfoByClusterId(this.activeClusterId);
+    const frameInfo = ClusterFrameManager.getInstance().getFrameInfoByClusterId(this.activeClusterId);
 
     if (frameInfo) {
       this.mainWindow.webContents.sendToFrame(

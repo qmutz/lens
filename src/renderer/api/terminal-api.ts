@@ -108,7 +108,10 @@ export class TerminalApi extends WebSocketApi {
 
   @autobind()
   protected _onReady(data: string) {
-    if (!data) return;
+    if (!data) {
+      return undefined;
+    }
+
     this.isReady = true;
     this.onReady.emit();
     this.onData.removeListener(this._onReady);

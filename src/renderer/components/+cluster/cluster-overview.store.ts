@@ -25,7 +25,6 @@ import { Cluster, clusterApi, IClusterMetrics } from "../../api/endpoints";
 import { autobind, createStorage } from "../../utils";
 import { IMetricsReqParams, normalizeMetrics } from "../../api/endpoints/metrics.api";
 import { nodesStore } from "../+nodes/nodes.store";
-import { apiManager } from "../../api/api-manager";
 
 export enum MetricType {
   MEMORY = "memory",
@@ -128,4 +127,3 @@ export class ClusterOverviewStore extends KubeObjectStore<Cluster> implements Cl
 }
 
 export const clusterOverviewStore = new ClusterOverviewStore();
-apiManager.registerStore(clusterOverviewStore);

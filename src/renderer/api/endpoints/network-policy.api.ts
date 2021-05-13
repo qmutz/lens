@@ -48,7 +48,7 @@ export interface IPolicyIngress {
 
 export interface IPolicyEgress {
   to: {
-    ipBlock: IPolicyIpBlock;
+    ipBlock?: IPolicyIpBlock;
   }[];
   ports: {
     protocol: string;

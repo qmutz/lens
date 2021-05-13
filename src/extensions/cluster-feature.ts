@@ -29,7 +29,7 @@ import { ClusterStore } from "../common/cluster-store";
 import { requestMain } from "../common/ipc";
 import logger from "../main/logger";
 import { ResourceApplier } from "../main/resource-applier";
-import { KubernetesCluster } from "./core-api/catalog";
+import type { KubernetesCluster } from "./core-api/catalog";
 
 export interface ClusterFeatureStatus {
   /** feature's current version, as set by the implementation */

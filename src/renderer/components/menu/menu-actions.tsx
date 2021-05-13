@@ -27,7 +27,7 @@ import { disposeOnUnmount, observer } from "mobx-react";
 import { autobind, cssNames } from "../../utils";
 import { ConfirmDialog } from "../confirm-dialog";
 import { Icon, IconProps } from "../icon";
-import { Menu, MenuItem, MenuProps } from "../menu";
+import { Menu, MenuItem, MenuProps } from "./menu";
 import uniqueId from "lodash/uniqueId";
 import isString from "lodash/isString";
 
@@ -46,9 +46,7 @@ export interface MenuActionsProps extends Partial<MenuProps> {
 @observer
 export class MenuActions extends React.Component<MenuActionsProps> {
   static defaultProps: MenuActionsProps = {
-    get removeConfirmationMessage() {
-      return `Remove item?`;
-    }
+    removeConfirmationMessage: "Remove item?",
   };
 
   public id = uniqueId("menu_actions_");
@@ -68,29 +66,31 @@ export class MenuActions extends React.Component<MenuActionsProps> {
 
   @autobind()
   remove() {
-    const { removeAction } = this.props;
-    let { removeConfirmationMessage } = this.props;
+    const { removeAction, removeConfirmationMessage } = this.props;
+    const message = typeof removeConfirmationMessage === "function"
+      ? removeConfirmationMessage()
+      : removeConfirmationMessage;
 
-    if (typeof removeConfirmationMessage === "function") {
-      removeConfirmationMessage = removeConfirmationMessage();
-    }
     ConfirmDialog.open({
       ok: removeAction,
       labelOk: `Remove`,
-      message: <div>{removeConfirmationMessage}</div>,
+      message: <div>{message}</div>,
     });
   }
 
   renderTriggerIcon() {
-    if (this.props.toolbar) return;
+    if (this.props.toolbar) {
+      return null;
+    }
+
     const { triggerIcon = "more_vert" } = this.props;
-    let className: string;
 
     if (isValidElement<HTMLElement>(triggerIcon)) {
-      className = cssNames(triggerIcon.props.className, { active: this.isOpen });
+      const className = cssNames(triggerIcon.props.className, { active: this.isOpen });
 
       return React.cloneElement(triggerIcon, { id: this.id, className } as any);
     }
+
     const iconProps: Partial<IconProps> = {
       id: this.id,
       interactive: true,

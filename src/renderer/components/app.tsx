@@ -30,33 +30,30 @@ import { setFrameId } from "../../common/cluster-ipc";
 import { getHostedCluster } from "../../common/cluster-store";
 import { appEventBus } from "../../common/event-bus";
 import { requestMain } from "../../common/ipc";
+import * as routes from "../../common/routes";
 import { ExtensionLoader } from "../../extensions/extension-loader";
-import { ClusterPageMenuRegistration, clusterPageMenuRegistry } from "../../extensions/registries";
-import { clusterPageRegistry, getExtensionPageUrl } from "../../extensions/registries/page-registry";
+import { ClusterPageMenuRegistration, ClusterPageMenuRegistry } from "../../extensions/registries";
+import { ClusterPageRegistry, getExtensionPageUrl } from "../../extensions/registries/page-registry";
 import logger from "../../main/logger";
 import { kubeWatchApi } from "../api/kube-watch-api";
 import { KubeObjectStore } from "../kube-object.store";
 import { history } from "../navigation";
 import { NotFound } from "./+404";
-import { Apps, appsRoute } from "./+apps";
-import { clusterRoute, clusterURL } from "./+cluster";
+import { Apps } from "./+apps";
 import { ClusterOverview } from "./+cluster/cluster-overview";
-import { Config, configRoute } from "./+config";
-import { crdRoute } from "./+custom-resources";
+import { Config } from "./+config";
 import { CustomResources } from "./+custom-resources/custom-resources";
-import { eventRoute } from "./+events";
 import { eventStore } from "./+events/event.store";
 import { Events } from "./+events/events";
-import { Namespaces, namespacesRoute } from "./+namespaces";
+import { Namespaces } from "./+namespaces";
 import { namespaceStore } from "./+namespaces/namespace.store";
-import { Network, networkRoute } from "./+network";
-import { Nodes, nodesRoute } from "./+nodes";
+import { Network } from "./+network";
+import { Nodes } from "./+nodes";
 import { nodesStore } from "./+nodes/nodes.store";
-import { Storage, storageRoute } from "./+storage";
+import { Storage } from "./+storage";
 import { AddRoleBindingDialog } from "./+user-management-roles-bindings";
 import { UserManagement } from "./+user-management/user-management";
-import { usersManagementRoute } from "./+user-management/user-management.route";
-import { Workloads, workloadsRoute, workloadsURL } from "./+workloads";
+import { Workloads } from "./+workloads";
 import { CronJobTriggerDialog } from "./+workloads-cronjobs/cronjob-trigger-dialog";
 import { DeploymentScaleDialog } from "./+workloads-deployments/deployment-scale-dialog";
 import { podsStore } from "./+workloads-pods/pods.store";
@@ -71,7 +68,7 @@ import { KubeObjectDetails } from "./kube-object/kube-object-details";
 import { KubeConfigDialog } from "./kubeconfig-dialog/kubeconfig-dialog";
 import { MainLayout } from "./layout/main-layout";
 import { TabLayout, TabLayoutRoute } from "./layout/tab-layout";
-import { Notifications } from "./notifications";
+import { NotificationList } from "./notifications";
 
 
 @observer
@@ -114,7 +111,7 @@ export class App extends React.Component {
     ]);
   }
 
-  @observable startUrl = getHostedCluster().isAllowedResource("events", "nodes", "pods") ? clusterURL() : workloadsURL();
+  @observable startUrl = getHostedCluster().isAllAllowedResource("events", "nodes", "pods") ? routes.clusterURL() : routes.workloadsURL();
 
   getTabLayoutRoutes(menuItem: ClusterPageMenuRegistration) {
     const routes: TabLayoutRoute[] = [];
@@ -122,8 +119,8 @@ export class App extends React.Component {
     if (!menuItem.id) {
       return routes;
     }
-    clusterPageMenuRegistry.getSubItems(menuItem).forEach((subMenu) => {
-      const page = clusterPageRegistry.getByPageTarget(subMenu.target);
+    ClusterPageMenuRegistry.getInstance().getSubItems(menuItem).forEach((subMenu) => {
+      const page = ClusterPageRegistry.getInstance().getByPageTarget(subMenu.target);
 
       if (page) {
         routes.push({
@@ -139,7 +136,7 @@ export class App extends React.Component {
   }
 
   renderExtensionTabLayoutRoutes() {
-    return clusterPageMenuRegistry.getRootItems().map((menu, index) => {
+    return ClusterPageMenuRegistry.getInstance().getRootItems().map((menu, index) => {
       const tabRoutes = this.getTabLayoutRoutes(menu);
 
       if (tabRoutes.length > 0) {
@@ -147,7 +144,7 @@ export class App extends React.Component {
 
         return <Route key={`extension-tab-layout-route-${index}`} component={pageComponent} path={tabRoutes.map((tab) => tab.routePath)}/>;
       } else {
-        const page = clusterPageRegistry.getByPageTarget(menu.target);
+        const page = ClusterPageRegistry.getInstance().getByPageTarget(menu.target);
 
         if (page) {
           return <Route key={`extension-tab-layout-route-${index}`} path={page.url} component={page.components.Page}/>;
@@ -159,8 +156,8 @@ export class App extends React.Component {
   }
 
   renderExtensionRoutes() {
-    return clusterPageRegistry.getItems().map((page, index) => {
-      const menu = clusterPageMenuRegistry.getByPage(page);
+    return ClusterPageRegistry.getInstance().getItems().map((page, index) => {
+      const menu = ClusterPageMenuRegistry.getInstance().getByPage(page);
 
       if (!menu) {
         return <Route key={`extension-route-${index}`} path={page.url} component={page.components.Page}/>;
@@ -176,24 +173,24 @@ export class App extends React.Component {
         <ErrorBoundary>
           <MainLayout>
             <Switch>
-              <Route component={ClusterOverview} {...clusterRoute}/>
-              <Route component={Nodes} {...nodesRoute}/>
-              <Route component={Workloads} {...workloadsRoute}/>
-              <Route component={Config} {...configRoute}/>
-              <Route component={Network} {...networkRoute}/>
-              <Route component={Storage} {...storageRoute}/>
-              <Route component={Namespaces} {...namespacesRoute}/>
-              <Route component={Events} {...eventRoute}/>
-              <Route component={CustomResources} {...crdRoute}/>
-              <Route component={UserManagement} {...usersManagementRoute}/>
-              <Route component={Apps} {...appsRoute}/>
+              <Route component={ClusterOverview} {...routes.clusterRoute}/>
+              <Route component={Nodes} {...routes.nodesRoute}/>
+              <Route component={Workloads} {...routes.workloadsRoute}/>
+              <Route component={Config} {...routes.configRoute}/>
+              <Route component={Network} {...routes.networkRoute}/>
+              <Route component={Storage} {...routes.storageRoute}/>
+              <Route component={Namespaces} {...routes.namespacesRoute}/>
+              <Route component={Events} {...routes.eventRoute}/>
+              <Route component={CustomResources} {...routes.crdRoute}/>
+              <Route component={UserManagement} {...routes.usersManagementRoute}/>
+              <Route component={Apps} {...routes.appsRoute}/>
               {this.renderExtensionTabLayoutRoutes()}
               {this.renderExtensionRoutes()}
               <Redirect exact from="/" to={this.startUrl}/>
               <Route component={NotFound}/>
             </Switch>
           </MainLayout>
-          <Notifications/>
+          <NotificationList/>
           <ConfirmDialog/>
           <KubeObjectDetails/>
           <KubeConfigDialog/>

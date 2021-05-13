@@ -19,8 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PrometheusProvider, PrometheusQueryOpts, PrometheusQuery, PrometheusService } from "./provider-registry";
-import { CoreV1Api, V1Service } from "@kubernetes/client-node";
+import type { PrometheusProvider, PrometheusQueryOpts, PrometheusQuery, PrometheusService } from "./provider-registry";
+import type { CoreV1Api, V1Service } from "@kubernetes/client-node";
 import logger from "../logger";
 
 export class PrometheusOperator implements PrometheusProvider {
@@ -28,7 +28,7 @@ export class PrometheusOperator implements PrometheusProvider {
   id = "operator";
   name = "Prometheus Operator";
 
-  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService> {
+  public async getPrometheusService(client: CoreV1Api): Promise<PrometheusService | null> {
     try {
       let service: V1Service;
 
@@ -39,7 +39,7 @@ export class PrometheusOperator implements PrometheusProvider {
           service = serviceList.body.items[0];
         }
       }
-      if (!service) return;
+      if (!service) return null;
 
       return {
         id: this.id,
@@ -50,11 +50,11 @@ export class PrometheusOperator implements PrometheusProvider {
     } catch(error) {
       logger.warn(`PrometheusOperator: failed to list services: ${error.toString()}`);
 
-      return;
+      return null;
     }
   }
 
-  public getQueries(opts: PrometheusQueryOpts): PrometheusQuery {
+  public getQueries(opts: PrometheusQueryOpts): PrometheusQuery | undefined {
     switch(opts.category) {
       case "cluster":
         return {
@@ -112,5 +112,7 @@ export class PrometheusOperator implements PrometheusProvider {
           responseDurationSeconds: `sum(rate(nginx_ingress_controller_response_duration_seconds_sum{ingress="${opts.ingress}"}[${this.rateAccuracy}])) by (ingress)`
         };
     }
+
+    return undefined;
   }
 }

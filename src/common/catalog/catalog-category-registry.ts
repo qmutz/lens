@@ -22,21 +22,9 @@ import { action, computed, observable, when } from "mobx";
 
 import { navigate } from "../../renderer/navigation";
 import type { Rest } from "../ipc";
-import { Disposer, disposer, ExtendedMap, Singleton, StrictMap } from "../utils";
-import {
-  AddMenuOpenHandler,
-  CatalogCategorySpec,
-  CatalogCategoryVersion,
-  CatalogEntity,
-  CatalogEntityConstructor,
-  CatalogEntityData,
-  CatalogEntityKindData,
-  CategoryHandler,
-  ContextMenuOpenHandler,
-  MatchingCatalogEntityData,
-  parseApiVersion,
-  SettingsMenuOpenHandler,
-} from "./catalog-entity";
+import { disposer, ExtendedMap, Singleton, StrictMap } from "../utils";
+import type { Disposer } from "../utils";
+import * as catalogEntity from "./catalog-entity";
 
 
 type KeysMatching<T, V> = { [K in keyof T]-?: T[K] extends V ? K : never }[keyof T];
@@ -52,11 +40,11 @@ export type EntityContextHandlers = keyof EntityContextGetters;
 export type GlobalContextHandlers = keyof GlobalContextGetters;
 
 type EntityContextGetters = {
-  [HandlerName in KeysMatching<CategoryHandlers, CategoryHandler<(...args: any) => any>>]: () => Rest<Parameters<CategoryHandlers[HandlerName]>>;
+  [HandlerName in KeysMatching<CategoryHandlers, catalogEntity.CategoryHandler<(...args: any) => any>>]: () => Rest<Parameters<CategoryHandlers[HandlerName]>>;
 };
 
 type GlobalContextGetters = {
-  [HandlerName in KeysNotMatching<CategoryHandlers, CategoryHandler<(...args: any) => any>>]: () => Parameters<CategoryHandlers[HandlerName]>;
+  [HandlerName in KeysNotMatching<CategoryHandlers, catalogEntity.CategoryHandler<(...args: any) => any>>]: () => Parameters<CategoryHandlers[HandlerName]>;
 };
 
 const EntityContexts: EntityContextGetters = {
@@ -71,10 +59,10 @@ const GlobalContexts: GlobalContextGetters = {
  * Note: this type shouldn't be exported or leaked out of this file.
  * The registry should do everything for any consumer of this type.
  */
-class CatalogCategory implements CatalogCategorySpec {
-  onContextMenuOpen = new Set<CategoryHandler<ContextMenuOpenHandler>>();
-  onSettingsOpen = new Set<CategoryHandler<SettingsMenuOpenHandler>>();
-  onAddMenuOpen = new Set<AddMenuOpenHandler>();
+class CatalogCategory implements catalogEntity.CatalogCategorySpec {
+  onContextMenuOpen = new Set<catalogEntity.CategoryHandler<catalogEntity.ContextMenuOpenHandler>>();
+  onSettingsOpen = new Set<catalogEntity.CategoryHandler<catalogEntity.SettingsMenuOpenHandler>>();
+  onAddMenuOpen = new Set<catalogEntity.AddMenuOpenHandler>();
 
   public readonly id: string;
 
@@ -87,13 +75,13 @@ class CatalogCategory implements CatalogCategorySpec {
 
   public readonly spec: {
     group: string;
-    versions: CatalogCategoryVersion<CatalogEntity>[];
+    versions: catalogEntity.CatalogCategoryVersion<catalogEntity.CatalogEntity>[];
     names: {
       kind: string;
     };
   };
 
-  constructor(specAndHandlers: CatalogCategorySpec & CategoryHandlers) {
+  constructor(specAndHandlers: catalogEntity.CatalogCategorySpec & CategoryHandlers) {
     const { apiVersion, kind, metadata, spec, ...handlers } = specAndHandlers;
 
     this.spec = spec;
@@ -126,8 +114,8 @@ export class CatalogCategoryRegistry extends Singleton {
    * 2. `VERSION`
    * 3. `KIND`
    */
-  @computed protected get entityToCategoryTable(): Map<string, Map<string, Map<string, [CatalogCategory, CatalogEntityConstructor<CatalogEntity>]>>> {
-    const res = ExtendedMap.newExtendedStrict<string, string, string, [CatalogCategory, CatalogEntityConstructor<CatalogEntity>]>();
+  @computed protected get entityToCategoryTable(): Map<string, Map<string, Map<string, [CatalogCategory, catalogEntity.CatalogEntityConstructor<catalogEntity.CatalogEntity>]>>> {
+    const res = ExtendedMap.newExtendedStrict<string, string, string, [CatalogCategory, catalogEntity.CatalogEntityConstructor<catalogEntity.CatalogEntity>]>();
 
     for (const category of this.categories.values()) {
       const grouping = res.getOrDefault(category.spec.group);
@@ -157,8 +145,8 @@ export class CatalogCategoryRegistry extends Singleton {
    * @param specAndHandlers The Category spec and initial handlers to register
    * @returns the ability to remove this category
    */
-  @action add(specAndHandlers: CatalogCategorySpec & CategoryHandlers): Disposer {
-    parseApiVersion(specAndHandlers.apiVersion); // make sure this is valid
+  @action add(specAndHandlers: catalogEntity.CatalogCategorySpec & CategoryHandlers): Disposer {
+    catalogEntity.parseApiVersion(specAndHandlers.apiVersion); // make sure this is valid
     const category = new CatalogCategory(specAndHandlers);
 
     this.categories.add(category);
@@ -166,11 +154,11 @@ export class CatalogCategoryRegistry extends Singleton {
     return () => void this.categories.delete(category);
   }
 
-  @computed get items(): CatalogCategorySpec[] {
+  @computed get items(): catalogEntity.CatalogCategorySpec[] {
     return Array.from(this.categoryIdLookup.values());
   }
 
-  getById(id: string): CatalogCategorySpec | undefined {
+  getById(id: string): catalogEntity.CatalogCategorySpec | undefined {
     return this.categoryIdLookup.get(id);
   }
 
@@ -180,7 +168,7 @@ export class CatalogCategoryRegistry extends Singleton {
    * @param kind the kind of entity that is desired
    */
   registerHandler(apiVersion: string, kind: string, handlerName: CategoryHandlerNames, handler: CatalogHandler<typeof handlerName>): Disposer {
-    const { group, version } = parseApiVersion(apiVersion, false);
+    const { group, version } = catalogEntity.parseApiVersion(apiVersion, false);
 
     if (version) {
       // only one version to do
@@ -203,9 +191,9 @@ export class CatalogCategoryRegistry extends Singleton {
     // all wrapped up in disposers
   }
 
-  runEntityHandlersFor(entity: CatalogEntity, handlerName: "onContextMenuOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
-  runEntityHandlersFor(entity: CatalogEntity, handlerName: "onSettingsOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
-  runEntityHandlersFor(entity: CatalogEntity, handlerName: EntityContextHandlers): ReturnType<CategoryHandlers[typeof handlerName]> {
+  runEntityHandlersFor(entity: catalogEntity.CatalogEntity, handlerName: "onContextMenuOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
+  runEntityHandlersFor(entity: catalogEntity.CatalogEntity, handlerName: "onSettingsOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
+  runEntityHandlersFor(entity: catalogEntity.CatalogEntity, handlerName: EntityContextHandlers): ReturnType<CategoryHandlers[typeof handlerName]> {
     const category = this.getCategoryForEntity(entity) as CatalogCategory; // safe and what it actually is
     const res = (entity[handlerName] as any)?.(...EntityContexts[handlerName]()) ?? [];
 
@@ -218,8 +206,8 @@ export class CatalogCategoryRegistry extends Singleton {
     return res.flat();
   }
 
-  runGlobalHandlersFor({ spec }: CatalogCategorySpec, handlerName: "onAddMenuOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
-  runGlobalHandlersFor({ spec }: CatalogCategorySpec, handlerName: GlobalContextHandlers): ReturnType<CategoryHandlers[typeof handlerName]> {
+  runGlobalHandlersFor({ spec }: catalogEntity.CatalogCategorySpec, handlerName: "onAddMenuOpen"): ReturnType<CategoryHandlers[typeof handlerName]>;
+  runGlobalHandlersFor({ spec }: catalogEntity.CatalogCategorySpec, handlerName: GlobalContextHandlers): ReturnType<CategoryHandlers[typeof handlerName]> {
     const category = this.categoryIdLookup.get(`${spec.group}/${spec.names.kind}`);
     const res = [];
 
@@ -230,8 +218,8 @@ export class CatalogCategoryRegistry extends Singleton {
     return res.flat();
   }
 
-  getEntityForData<Entity extends CatalogEntity>(data: MatchingCatalogEntityData<Entity> & CatalogEntityKindData): Entity {
-    const { group, version } = parseApiVersion(data.apiVersion);
+  getEntityForData<Entity extends catalogEntity.CatalogEntity>(data: catalogEntity.MatchingCatalogEntityData<Entity> & catalogEntity.CatalogEntityKindData): Entity {
+    const { group, version } = catalogEntity.parseApiVersion(data.apiVersion);
 
     const [, entityClass] = this.entityToCategoryTable.get(group)?.get(version)?.get(data.kind);
     const res = new entityClass(data);
@@ -243,8 +231,8 @@ export class CatalogCategoryRegistry extends Singleton {
     return res as Entity;
   }
 
-  getCategoryForEntity(data: CatalogEntityData & CatalogEntityKindData): CatalogCategorySpec | undefined {
-    const { group, version } = parseApiVersion(data.apiVersion);
+  getCategoryForEntity(data: catalogEntity.CatalogEntityData & catalogEntity.CatalogEntityKindData): catalogEntity.CatalogCategorySpec | undefined {
+    const { group, version } = catalogEntity.parseApiVersion(data.apiVersion);
 
     return this.entityToCategoryTable.get(group)?.get(version)?.get(data.kind)?.[0];
   }

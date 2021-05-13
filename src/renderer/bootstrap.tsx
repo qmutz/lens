@@ -43,8 +43,11 @@ import { ThemeStore } from "./theme.store";
 import { HelmRepoManager } from "../main/helm/helm-repo-manager";
 import { ExtensionInstallationStateStore } from "./components/+extensions/extension-install.store";
 import { DefaultProps } from "./mui-base-theme";
-import { CatalogCategoryRegistry, CatalogEntityRegistry } from "../common/catalog";
-import { registerDefaultCategories } from "../common/default-categories";
+import { CatalogEntityRegistry } from "../common/catalog";
+import { initCatalogCategories } from "../common/initializers/catalog-categories";
+import { Notifications } from "./components/notifications";
+import { initExtensionRegistries } from "../common/initializers/extension-registries";
+import * as initializers from "./initializers";
 
 /**
  * If this is a development buid, wait a second to attach
@@ -71,13 +74,21 @@ export {
 };
 
 export async function bootstrap(App: AppComponent) {
+  Notifications.createInstance();
+
   const rootElem = document.getElementById("app");
 
   await attachChromeDebugger();
   rootElem.classList.toggle("is-mac", isMac);
 
-  CatalogCategoryRegistry.createInstance();
-  registerDefaultCategories();
+  initExtensionRegistries();
+  initializers.initApiManager();
+  initializers.initCommandRegistry();
+  initializers.initKubeObjectMenuRegistry();
+  initializers.initKubeObjectDetailRegistry();
+  initializers.initWelcomeMenuRegistry();
+  initializers.initEntitySettingsRegistry();
+  initCatalogCategories();
   CatalogEntityRegistry.createInstance();
 
   ExtensionLoader.createInstance().init();

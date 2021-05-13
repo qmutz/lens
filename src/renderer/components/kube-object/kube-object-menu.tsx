@@ -21,12 +21,12 @@
 
 import React from "react";
 import { autobind, cssNames } from "../../utils";
-import { KubeObject } from "../../api/kube-object";
+import type { KubeObject } from "../../api/kube-object";
 import { editResourceTab } from "../dock/edit-resource.store";
 import { MenuActions, MenuActionsProps } from "../menu/menu-actions";
-import { hideDetails } from "./kube-object-details";
-import { apiManager } from "../../api/api-manager";
-import { kubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
+import { ApiManager } from "../../api/api-manager";
+import { KubeObjectMenuRegistry } from "../../../extensions/registries/kube-object-menu-registry";
+import { toggleDetails } from "./utils";
 
 export interface KubeObjectMenuProps<T> extends MenuActionsProps {
   object: T | null | undefined;
@@ -38,9 +38,7 @@ export class KubeObjectMenu<T extends KubeObject> extends React.Component<KubeOb
   get store() {
     const { object } = this.props;
 
-    if (!object) return;
-
-    return apiManager.getStore(object.selfLink);
+    return ApiManager.getInstance().getStore(object?.selfLink);
   }
 
   get isEditable() {
@@ -57,13 +55,13 @@ export class KubeObjectMenu<T extends KubeObject> extends React.Component<KubeOb
 
   @autobind()
   async update() {
-    hideDetails();
+    toggleDetails();
     editResourceTab(this.props.object);
   }
 
   @autobind()
   async remove() {
-    hideDetails();
+    toggleDetails();
     const { object, removeAction } = this.props;
 
     if (removeAction) await removeAction();
@@ -88,7 +86,8 @@ export class KubeObjectMenu<T extends KubeObject> extends React.Component<KubeOb
       return [];
     }
 
-    return kubeObjectMenuRegistry
+    return KubeObjectMenuRegistry
+      .getInstance()
       .getItemsForKind(object.kind, object.apiVersion)
       .map(({components: { MenuItem }}, index) => (
         <MenuItem

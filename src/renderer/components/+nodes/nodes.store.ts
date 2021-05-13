@@ -24,7 +24,6 @@ import { action, computed, observable } from "mobx";
 import { clusterApi, IClusterMetrics, INodeMetrics, Node, nodesApi } from "../../api/endpoints";
 import { autobind } from "../../utils";
 import { KubeObjectStore } from "../../kube-object.store";
-import { apiManager } from "../../api/api-manager";
 
 @autobind()
 export class NodesStore extends KubeObjectStore<Node> {
@@ -62,7 +61,7 @@ export class NodesStore extends KubeObjectStore<Node> {
 
   getLastMetricValues(node: Node, metricNames: string[]): number[] {
     if (!this.metricsLoaded) {
-      return;
+      return null;
     }
     const nodeName = node.getName();
 
@@ -98,4 +97,3 @@ export class NodesStore extends KubeObjectStore<Node> {
 }
 
 export const nodesStore = new NodesStore();
-apiManager.registerStore(nodesStore);

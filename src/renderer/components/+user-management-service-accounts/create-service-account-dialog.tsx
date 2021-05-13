@@ -32,7 +32,7 @@ import { Input } from "../input";
 import { systemName } from "../input/input_validators";
 import { NamespaceSelect } from "../+namespaces/namespace-select";
 import { Notifications } from "../notifications";
-import { showDetails } from "../kube-object";
+import { toggleDetails } from "../kube-object/utils";
 
 interface Props extends Partial<DialogProps> {
 }
@@ -63,7 +63,7 @@ export class CreateServiceAccountDialog extends React.Component<Props> {
       const serviceAccount = await serviceAccountsStore.create({ namespace, name });
 
       this.name = "";
-      showDetails(serviceAccount.selfLink);
+      toggleDetails(serviceAccount.selfLink);
       this.close();
     } catch (err) {
       Notifications.error(err);

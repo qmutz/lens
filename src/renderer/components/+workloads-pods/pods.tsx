@@ -25,20 +25,21 @@ import React, { Fragment } from "react";
 import { observer } from "mobx-react";
 import { Link } from "react-router-dom";
 import { podsStore } from "./pods.store";
-import { RouteComponentProps } from "react-router";
+import type { RouteComponentProps } from "react-router";
 import { volumeClaimStore } from "../+storage-volume-claims/volume-claim.store";
-import { IPodsRouteParams } from "../+workloads";
 import { eventStore } from "../+events/event.store";
-import { getDetailsUrl, KubeObjectListLayout } from "../kube-object";
+import { KubeObjectListLayout } from "../kube-object";
 import { nodesApi, Pod } from "../../api/endpoints";
 import { StatusBrick } from "../status-brick";
 import { cssNames, stopPropagation } from "../../utils";
 import toPairs from "lodash/toPairs";
 import startCase from "lodash/startCase";
 import kebabCase from "lodash/kebabCase";
-import { lookupApiLink } from "../../api/kube-api";
 import { KubeObjectStatusIcon } from "../kube-object-status-icon";
 import { Badge } from "../badge";
+import { ApiManager } from "../../api/api-manager";
+import type { IPodsRouteParams } from "../../../common/routes";
+import { getDetailsUrl } from "../kube-object/utils";
 
 enum columnId {
   name = "name",
@@ -134,7 +135,7 @@ export class Pods extends React.Component<Props> {
           pod.getRestartsCount(),
           pod.getOwnerRefs().map(ref => {
             const { kind, name } = ref;
-            const detailsLink = getDetailsUrl(lookupApiLink(ref, pod));
+            const detailsLink = getDetailsUrl(ApiManager.getInstance().lookupApiLink(ref, pod));
 
             return (
               <Badge flat key={name} className="owner" tooltip={name}>

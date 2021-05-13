@@ -31,7 +31,7 @@ import { Notifications } from "../notifications";
 import { rolesStore } from "./roles.store";
 import { Input } from "../input";
 import { NamespaceSelect } from "../+namespaces/namespace-select";
-import { showDetails } from "../kube-object";
+import { toggleDetails } from "../kube-object/utils";
 
 interface Props extends Partial<DialogProps> {
 }
@@ -64,7 +64,7 @@ export class AddRoleDialog extends React.Component<Props> {
     try {
       const role = await rolesStore.create({ name: this.roleName, namespace: this.namespace });
 
-      showDetails(role.selfLink);
+      toggleDetails(role.selfLink);
       this.reset();
       this.close();
     } catch (err) {

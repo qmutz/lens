@@ -22,8 +22,8 @@
 import type { LocationDescriptor } from "history";
 import { matchPath, RouteProps } from "react-router";
 import { PageParam, PageSystemParamInit } from "./page-param";
-import { clusterViewRoute, IClusterViewRouteParams } from "../components/cluster-manager/cluster-view.route";
 import { navigation } from "./history";
+import { IClusterViewRouteParams, clusterViewRoute } from "../../common/routes";
 
 export function navigate(location: LocationDescriptor) {
   const currentLocation = navigation.location.pathname;

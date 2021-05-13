@@ -19,11 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { action, autorun, IReactionDisposer, reaction } from "mobx";
+import { action, autorun, computed, IReactionDisposer, reaction } from "mobx";
 import { dockStore, IDockTab, TabId, TabKind } from "./dock.store";
 import { DockTabStore } from "./dock-tab.store";
 import { getReleaseValues, HelmRelease } from "../../api/endpoints/helm-releases.api";
 import { releaseStore } from "../+apps-releases/release.store";
+import { iter } from "../../utils";
 
 export interface IChartUpgradeData {
   releaseName: string;
@@ -57,14 +58,16 @@ export class UpgradeChartStore extends DockTabStore<IChartUpgradeData> {
     });
   }
 
+  @computed get releaseNameToId(): Map<string, string> {
+    return new Map(iter.map(this.data.entries(), ([id, {releaseName}]) => [releaseName, id]));
+  }
+
   private createReleaseWatcher(releaseName: string) {
     if (this.watchers.get(releaseName)) {
       return;
     }
     const dispose = reaction(() => {
-      const release = releaseStore.getByName(releaseName);
-
-      if (release) return release.getRevision(); // watch changes only by revision
+      return releaseStore.getByName(releaseName)?.getRevision(); // watch changes only by revision
     },
     release => {
       const releaseTab = this.getTabByRelease(releaseName);
@@ -115,14 +118,8 @@ export class UpgradeChartStore extends DockTabStore<IChartUpgradeData> {
     this.values.setData(tabId, values);
   }
 
-  getTabByRelease(releaseName: string): IDockTab {
-    const item = [...this.data].find(item => item[1].releaseName === releaseName);
-
-    if (item) {
-      const [tabId] = item;
-
-      return dockStore.getTabById(tabId);
-    }
+  getTabByRelease(releaseName: string): IDockTab | null {
+    return dockStore.getTabById(this.releaseNameToId.get(releaseName));
   }
 }
 

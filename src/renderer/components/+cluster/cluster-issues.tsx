@@ -30,11 +30,11 @@ import { Table, TableCell, TableHead, TableRow } from "../table";
 import { nodesStore } from "../+nodes/nodes.store";
 import { eventStore } from "../+events/event.store";
 import { autobind, cssNames, prevDefault } from "../../utils";
-import { ItemObject } from "../../item.store";
+import type { ItemObject } from "../../item.store";
 import { Spinner } from "../spinner";
 import { ThemeStore } from "../../theme.store";
-import { lookupApiLink } from "../../api/kube-api";
-import { kubeSelectedUrlParam, showDetails } from "../kube-object";
+import { kubeSelectedUrlParam, toggleDetails } from "../kube-object/utils";
+import { ApiManager } from "../../api/api-manager";
 
 interface Props {
   className?: string;
@@ -96,7 +96,7 @@ export class ClusterIssues extends React.Component<Props> {
         age: getAge(),
         message,
         kind,
-        selfLink: lookupApiLink(involvedObject, error),
+        selfLink: ApiManager.getInstance().lookupApiLink(involvedObject, error),
       });
     });
 
@@ -114,7 +114,7 @@ export class ClusterIssues extends React.Component<Props> {
         key={getId()}
         sortItem={warning}
         selected={selfLink === kubeSelectedUrlParam.get()}
-        onClick={prevDefault(() => showDetails(selfLink))}
+        onClick={prevDefault(() => toggleDetails(selfLink))}
       >
         <TableCell className="message">
           {message}

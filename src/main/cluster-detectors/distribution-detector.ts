@@ -19,8 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { ClusterMetadataKey } from "../../common/cluster-types";
 import { BaseClusterDetector } from "./base-cluster-detector";
-import { ClusterMetadataKey } from "../cluster";
 
 export class DistributionDetector extends BaseClusterDetector {
   key = ClusterMetadataKey.DISTRIBUTION;
@@ -60,7 +60,7 @@ export class DistributionDetector extends BaseClusterDetector {
     if (this.isK0s()) {
       return { value: "k0s", accuracy: 80};
     }
-    
+
     if (this.isVMWare()) {
       return { value: "vmware", accuracy: 90};
     }
@@ -179,7 +179,7 @@ export class DistributionDetector extends BaseClusterDetector {
   protected isK0s() {
     return this.version.includes("-k0s");
   }
-  
+
   protected isAlibaba() {
     return this.version.includes("-aliyun");
   }
