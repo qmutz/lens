@@ -181,7 +181,6 @@
     "@hapi/call": "^8.0.0",
     "@hapi/subtext": "^7.0.3",
     "@kubernetes/client-node": "^0.12.0",
-    "@material-ui/icons": "^4.11.2",
     "abort-controller": "^3.0.0",
     "array-move": "^3.0.0",
     "await-lock": "^2.1.0",
