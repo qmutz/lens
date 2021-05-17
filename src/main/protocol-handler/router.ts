@@ -25,6 +25,7 @@ import Url from "url-parse";
 import { LensExtension } from "../../extensions/lens-extension";
 import { broadcastMessage } from "../../common/ipc";
 import { observable, when } from "mobx";
+import { RouteAttempt } from "../../common/protocol-handler";
 
 export interface FallbackHandler {
   (name: string): Promise<boolean>;
@@ -54,11 +55,12 @@ export class LensProtocolRouterMain extends proto.LensProtocolRouter {
 
       switch (url.host) {
         case "app":
-          return this._routeToInternal(url);
+          this._routeToInternal(url);
+          break;
         case "extension":
           await when(() => this.extensionsLoaded);
-
-          return this._routeToExtension(url);
+          await  this._routeToExtension(url);
+          break;
         default:
           throw new proto.RoutingError(proto.RoutingErrorType.INVALID_HOST, url);
       }
@@ -96,17 +98,16 @@ export class LensProtocolRouterMain extends proto.LensProtocolRouter {
     return "";
   }
 
-  protected async _routeToInternal(url: Url): Promise<void> {
+  protected _routeToInternal(url: Url): RouteAttempt {
     const rawUrl = url.toString(); // for sending to renderer
+    const attempt = super._routeToInternal(url);
 
-    super._routeToInternal(url);
+    when(() => this.rendererLoaded, () => broadcastMessage(proto.ProtocolHandlerInternal, rawUrl, attempt));
 
-    await when(() => this.rendererLoaded);
-
-    return broadcastMessage(proto.ProtocolHandlerInternal, rawUrl);
+    return attempt;
   }
 
-  protected async _routeToExtension(url: Url): Promise<void> {
+  protected async _routeToExtension(url: Url): Promise<RouteAttempt> {
     const rawUrl = url.toString(); // for sending to renderer
 
     /**
@@ -116,10 +117,12 @@ export class LensProtocolRouterMain extends proto.LensProtocolRouter {
      * Note: this needs to clone the url because _routeToExtension modifies its
      * argument.
      */
-    await super._routeToExtension(new Url(url.toString(), true));
+    const attempt = await super._routeToExtension(new Url(url.toString(), true));
     await when(() => this.rendererLoaded);
 
-    return broadcastMessage(proto.ProtocolHandlerExtension, rawUrl);
+    broadcastMessage(proto.ProtocolHandlerExtension, rawUrl, attempt);
+
+    return attempt;
   }
 
   /**
