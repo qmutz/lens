@@ -40,7 +40,6 @@ const logPrefix = "[KUBECONFIG-SYNC]:";
 export class KubeconfigSyncManager extends Singleton {
   protected sources = observable.map<string, [IComputedValue<CatalogEntity[]>, Disposer]>();
   protected syncing = false;
-  protected syncListDisposer?: Disposer;
 
   protected static readonly syncName = "lens:kube-sync";
 
@@ -68,28 +67,26 @@ export class KubeconfigSyncManager extends Singleton {
       this.startNewSync(filePath);
     }
 
-    this.syncListDisposer = UserStore.getInstance().syncKubeconfigEntries.observe(change => {
-      switch (change.type) {
-        case "add":
-          this.startNewSync(change.name);
-          break;
-        case "delete":
-          this.stopOldSync(change.name);
-          break;
+    this.disposers.push(
+      UserStore.getInstance().syncKubeconfigEntries.observe(change => {
+        switch (change.type) {
+          case "add":
+            this.startNewSync(change.name);
+            break;
+          case "delete":
+            this.stopOldSync(change.name);
+            break;
+        }
+      }),
+      () => {
+        for (const filePath of this.sources.keys()) {
+          this.stopOldSync(filePath);
+        }
+
+        catalogEntityRegistry.removeSource(KubeconfigSyncManager.syncName);
+        this.syncing = false;
       }
-    });
-  }
-
-  @action
-  stopSync() {
-    this.syncListDisposer?.();
-
-    for (const filePath of this.sources.keys()) {
-      this.stopOldSync(filePath);
-    }
-
-    catalogEntityRegistry.removeSource(KubeconfigSyncManager.syncName);
-    this.syncing = false;
+    );
   }
 
   @action

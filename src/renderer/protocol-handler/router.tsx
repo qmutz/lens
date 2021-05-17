@@ -23,9 +23,8 @@ import React from "react";
 import { ipcRenderer } from "electron";
 import * as proto from "../../common/protocol-handler";
 import Url from "url-parse";
-import { autobind } from "../utils";
 import { onCorrect } from "../../common/ipc";
-import { foldAttemptResults, RouteAttempt } from "../../common/protocol-handler";
+import { foldAttemptResults, ProtocolHandlerInvalid, RouteAttempt } from "../../common/protocol-handler";
 import { Notifications } from "../components/notifications";
 
 function verifyIpcArgs(args: unknown[]): args is [string, RouteAttempt] {
@@ -97,6 +96,25 @@ export class LensProtocolRouterRenderer extends proto.LensProtocolRouter {
             });
             break;
         }
+      }
+    });
+    onCorrect({
+      channel: ProtocolHandlerInvalid,
+      source: ipcRenderer,
+      listener: (event, error, rawUrl) => {
+        Notifications.error((
+          <>
+            <p>
+              Failed to route <code>{rawUrl}</code>.
+            </p>
+            <p>
+              <b>Error:</b> {error}
+            </p>
+          </>
+        ));
+      },
+      verifier: (args): args is [string, string] => {
+        return args.length === 2 && typeof args[0] === "string";
       }
     });
   }

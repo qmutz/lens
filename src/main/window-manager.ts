@@ -38,15 +38,15 @@ export class WindowManager extends Singleton {
   protected mainWindow: BrowserWindow;
   protected splashWindow: BrowserWindow;
   protected windowState: windowStateKeeper.State;
-  protected disposers: Record<string, Function> = {};
 
   @observable activeClusterId: ClusterId;
 
   constructor() {
     super();
     this.bindEvents();
-    this.initMenu();
-    this.initTray();
+    this.disposers.push(initMenu(this));
+    this.disposers.push(initTray(this));
+    this.disposers.push(() => this.destroy());
   }
 
   get mainUrl() {
@@ -130,14 +130,6 @@ export class WindowManager extends Singleton {
     }
   }
 
-  protected async initMenu() {
-    this.disposers.menuAutoUpdater = initMenu(this);
-  }
-
-  protected initTray() {
-    this.disposers.trayAutoUpdater = initTray(this);
-  }
-
   protected bindEvents() {
     // track visible cluster from ui
     subscribeToBroadcast(IpcRendererNavigationEvents.CLUSTER_VIEW_CURRENT_ID, (event, clusterId: ClusterId) => {
@@ -214,9 +206,5 @@ export class WindowManager extends Singleton {
     this.splashWindow.destroy();
     this.mainWindow = null;
     this.splashWindow = null;
-    Object.entries(this.disposers).forEach(([name, dispose]) => {
-      dispose();
-      delete this.disposers[name];
-    });
   }
 }

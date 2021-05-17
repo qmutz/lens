@@ -35,7 +35,8 @@ import { RouteHandler, RouteParams } from "../../extensions/registries/protocol-
 export const ProtocolHandlerIpcPrefix = "protocol-handler";
 
 export const ProtocolHandlerInternal = `${ProtocolHandlerIpcPrefix}:internal`;
-export const ProtocolHandlerExtension= `${ProtocolHandlerIpcPrefix}:extension`;
+export const ProtocolHandlerExtension = `${ProtocolHandlerIpcPrefix}:extension`;
+export const ProtocolHandlerInvalid = `${ProtocolHandlerIpcPrefix}:invalid`;
 
 /**
  * These two names are long and cumbersome by design so as to decrease the chances

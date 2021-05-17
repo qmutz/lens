@@ -35,29 +35,36 @@ export class ClusterManager extends Singleton {
   constructor() {
     super();
 
-    reaction(() => toJS(ClusterStore.getInstance().clustersList, { recurseEverything: true }), () => {
-      this.updateCatalog(ClusterStore.getInstance().clustersList);
-    }, { fireImmediately: true });
+    this.disposers.push(
+      reaction(
+        () => toJS(ClusterStore.getInstance().clustersList, { recurseEverything: true }),
+        clusters => this.updateCatalog(clusters),
+        { fireImmediately: true },
+      ),
+      reaction(
+        () => catalogEntityRegistry.getItemsForApiKind<KubernetesCluster>("entity.k8slens.dev/v1alpha1", "KubernetesCluster"),
+        entities => this.syncClustersFromCatalog(entities)
+      ),
+      // auto-stop removed clusters
+      autorun(() => {
+        const removedClusters = Array.from(ClusterStore.getInstance().removedClusters.values());
 
-    reaction(() => catalogEntityRegistry.getItemsForApiKind<KubernetesCluster>("entity.k8slens.dev/v1alpha1", "KubernetesCluster"), (entities) => {
-      this.syncClustersFromCatalog(entities);
-    });
+        if (removedClusters.length > 0) {
+          const meta = removedClusters.map(cluster => cluster.getMeta());
 
-
-    // auto-stop removed clusters
-    autorun(() => {
-      const removedClusters = Array.from(ClusterStore.getInstance().removedClusters.values());
-
-      if (removedClusters.length > 0) {
-        const meta = removedClusters.map(cluster => cluster.getMeta());
-
-        logger.info(`[CLUSTER-MANAGER]: removing clusters`, meta);
-        removedClusters.forEach(cluster => cluster.disconnect());
-        ClusterStore.getInstance().removedClusters.clear();
+          logger.info(`[CLUSTER-MANAGER]: removing clusters`, meta);
+          removedClusters.forEach(cluster => cluster.disconnect());
+          ClusterStore.getInstance().removedClusters.clear();
+        }
+      }, {
+        delay: 250
+      }),
+      () => {
+        for (const cluster of ClusterStore.getInstance().clusters.values()) {
+          cluster.disconnect();
+        }
       }
-    }, {
-      delay: 250
-    });
+    );
 
     ipcMain.on("network:offline", () => { this.onNetworkOffline(); });
     ipcMain.on("network:online", () => { this.onNetworkOnline(); });
@@ -123,12 +130,6 @@ export class ClusterManager extends Singleton {
       if (!cluster.disconnected) {
         cluster.refreshConnectionStatus().catch((e) => e);
       }
-    });
-  }
-
-  stop() {
-    ClusterStore.getInstance().clusters.forEach((cluster: Cluster) => {
-      cluster.disconnect();
     });
   }
 

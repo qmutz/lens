@@ -89,8 +89,11 @@ if (!app.requestSingleInstanceLock()) {
 
   for (const arg of process.argv) {
     if (arg.toLowerCase().startsWith("lens://")) {
-      lprm.route(arg)
-        .catch(error => logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl: arg }));
+      try {
+        lprm.route(arg);
+      } catch (error) {
+        logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl: arg });
+      }
     }
   }
 }
@@ -100,8 +103,11 @@ app.on("second-instance", (event, argv) => {
 
   for (const arg of argv) {
     if (arg.toLowerCase().startsWith("lens://")) {
-      lprm.route(arg)
-        .catch(error => logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl: arg }));
+      try {
+        lprm.route(arg);
+      } catch (error) {
+        logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl: arg });
+      }
     }
   }
 
@@ -249,8 +255,9 @@ app.on("will-quit", (event) => {
   // Quit app on Cmd+Q (MacOS)
   logger.info("APP:QUIT");
   appEventBus.emit({name: "app", action: "close"});
-  ClusterManager.getInstance(false)?.stop(); // close cluster connections
-  KubeconfigSyncManager.getInstance(false)?.stopSync();
+  WindowManager.resetInstance();
+  ClusterManager.resetInstance();
+  KubeconfigSyncManager.resetInstance();
 
   if (blockQuit) {
     event.preventDefault(); // prevent app's default shutdown (e.g. required for telemetry, etc.)
@@ -263,10 +270,11 @@ app.on("open-url", (event, rawUrl) => {
   // lens:// protocol handler
   event.preventDefault();
 
-  LensProtocolRouterMain
-    .getInstance()
-    .route(rawUrl)
-    .catch(error => logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl }));
+  try {
+    LensProtocolRouterMain.getInstance().route(rawUrl);
+  } catch (error) {
+    logger.error(`${LensProtocolRouterMain.LoggingPrefix}: an error occured`, { error, rawUrl });
+  }
 });
 
 // Extensions-api runtime exports
