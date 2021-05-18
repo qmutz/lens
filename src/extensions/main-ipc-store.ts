@@ -18,30 +18,28 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { ipcMain } from "electron";
+import { IpcPrefix, IpcStore } from "./ipc-store";
+import { Disposers } from "./lens-extension";
+import type { LensMainExtension } from "./lens-main-extension";
 
-import type { Application } from "spectron";
-import * as utils from "../helpers/utils";
+export abstract class MainIpcStore extends IpcStore {
+  constructor(extension: LensMainExtension) {
+    super(extension);
+    extension[Disposers].push(() => MainIpcStore.resetInstance());
+  }
 
-jest.setTimeout(60000);
+  handleIpc(channel: string, handler: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any): void {
+    const prefixedChannel = `extensions@${this[IpcPrefix]}:${channel}`;
 
-describe("Lens command palette", () => {
-  let app: Application;
+    ipcMain.handle(prefixedChannel, handler);
+    this.extension[Disposers].push(() => ipcMain.removeHandler(prefixedChannel));
+  }
 
-  describe("menu", () => {
-    utils.beforeAllWrapped(async () => {
-      app = await utils.appStart();
-    });
+  listenIpc(channel: string, listener: (event: Electron.IpcMainEvent, ...args: any[]) => any): void {
+    const prefixedChannel = `extensions@${this[IpcPrefix]}:${channel}`;
 
-    utils.afterAllWrapped(async () => {
-      if (app?.isRunning()) {
-        await utils.tearDown(app);
-      }
-    });
-
-    it("opens command dialog from menu", async () => {
-      await app.electron.ipcRenderer.send("test-menu-item-click", "View", "Command Palette...");
-      await app.client.waitUntilTextExists(".Select__option", "Hotbar: Switch");
-      await app.client.keys("Escape");
-    });
-  });
-});
+    ipcMain.addListener(prefixedChannel, listener);
+    this.extension[Disposers].push(() => ipcMain.removeListener(prefixedChannel, listener));
+  }
+}

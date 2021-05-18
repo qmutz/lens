@@ -19,29 +19,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { Application } from "spectron";
-import * as utils from "../helpers/utils";
-
-jest.setTimeout(60000);
-
-describe("Lens command palette", () => {
-  let app: Application;
-
-  describe("menu", () => {
-    utils.beforeAllWrapped(async () => {
-      app = await utils.appStart();
-    });
-
-    utils.afterAllWrapped(async () => {
-      if (app?.isRunning()) {
-        await utils.tearDown(app);
-      }
-    });
-
-    it("opens command dialog from menu", async () => {
-      await app.electron.ipcRenderer.send("test-menu-item-click", "View", "Command Palette...");
-      await app.client.waitUntilTextExists(".Select__option", "Hotbar: Switch");
-      await app.client.keys("Escape");
-    });
-  });
-});
+export type IpcMainInvokeEvent = Electron.IpcMainInvokeEvent;
+export type IpcRendererEvent = Electron.IpcRendererEvent;
+export type IpcMainEvent = Electron.IpcMainEvent;

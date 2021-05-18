@@ -18,30 +18,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { Singleton } from "../common/utils";
+import type { LensExtension } from "./lens-extension";
+import { createHash } from "crypto";
+import { broadcastMessage } from "../common/ipc";
 
-import type { Application } from "spectron";
-import * as utils from "../helpers/utils";
+export const IpcPrefix = Symbol();
 
-jest.setTimeout(60000);
+export abstract class IpcStore extends Singleton {
+  readonly [IpcPrefix]: string;
 
-describe("Lens command palette", () => {
-  let app: Application;
+  constructor(protected extension: LensExtension) {
+    super();
+    this[IpcPrefix] = createHash("sha256").update(extension.id).digest("hex");
+  }
 
-  describe("menu", () => {
-    utils.beforeAllWrapped(async () => {
-      app = await utils.appStart();
-    });
-
-    utils.afterAllWrapped(async () => {
-      if (app?.isRunning()) {
-        await utils.tearDown(app);
-      }
-    });
-
-    it("opens command dialog from menu", async () => {
-      await app.electron.ipcRenderer.send("test-menu-item-click", "View", "Command Palette...");
-      await app.client.waitUntilTextExists(".Select__option", "Hotbar: Switch");
-      await app.client.keys("Escape");
-    });
-  });
-});
+  broadcastIpc(channel: string, ...args: any[]): void {
+    broadcastMessage(`extensions@${this[IpcPrefix]}:${channel}`, ...args);
+  }
+}
