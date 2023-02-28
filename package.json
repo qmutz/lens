@@ -191,7 +191,7 @@
     "conf": "^7.0.1",
     "crypto-js": "^4.0.0",
     "electron-devtools-installer": "^3.1.1",
-    "electron-updater": "^4.3.1",
+    "electron-updater": "^4.6.5",
     "electron-window-state": "^5.0.3",
     "filehound": "^1.17.4",
     "filenamify": "^4.1.0",
