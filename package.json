@@ -180,7 +180,7 @@
   "dependencies": {
     "@hapi/call": "^8.0.0",
     "@hapi/subtext": "^7.0.3",
-    "@kubernetes/client-node": "^0.12.0",
+    "@kubernetes/client-node": "^0.18.1",
     "abort-controller": "^3.0.0",
     "array-move": "^3.0.0",
     "await-lock": "^2.1.0",
@@ -201,7 +201,7 @@
     "http-proxy": "^1.18.1",
     "immer": "^8.0.1",
     "js-yaml": "^3.14.0",
-    "jsdom": "^16.4.0",
+    "jsdom": "^17.0.0",
     "jsonpath": "^1.0.2",
     "lodash": "^4.17.15",
     "mac-ca": "^1.0.4",
@@ -237,7 +237,7 @@
     "win-ca": "^3.2.0",
     "winston": "^3.2.1",
     "winston-transport-browserconsole": "^1.0.5",
-    "ws": "^7.3.0"
+    "ws": "^8.17.1"
   },
   "devDependencies": {
     "@emeraldpay/hashicon-react": "^0.4.0",
