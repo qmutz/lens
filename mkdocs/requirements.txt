@@ -6,3 +6,4 @@ pymdown-extensions>=7.0
 mkdocs-material-extensions>=1.0
 mkdocs-git-revision-date-localized-plugin>=0.7.3
 mkdocs-material>=6.1.0
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
